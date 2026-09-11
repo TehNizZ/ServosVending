@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servos Vending Studio & Visual Site Editor</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        studio: {
+                            bg: '#0B0F17',
+                            card: '#131924',
+                            border: '#212B3B',
+                            accent: '#3B82F6',
+                            orange: '#FF773D',
+                            emerald: '#10B981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0B0F17; }
+        ::-webkit-scrollbar-thumb { background: #212B3B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF773D; }
+
+        .editor-tab.active {
+            border-color: #FF773D;
+            color: #FF773D;
+            background-color: rgba(255, 119, 61, 0.08);
+        }
+
+        .device-btn.active {
+            background-color: #3B82F6;
+            color: #FFFFFF;
+        }
+
+        .glass-panel {
+            background: rgba(19, 25, 36, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(33, 43, 59, 0.8);
+        }
+
+        #preview-viewport-container {
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .toast-animate {
+            animation: slideIn 0.3s ease forwards;
+        }
+    </style>
+</head>
+<body class="bg-studio-bg text-slate-200 font-sans h-full flex flex-col overflow-hidden selection:bg-orange-500 selection:text-white">
+
+    <header class="h-16 bg-studio-card/90 border-b border-studio-border px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center font-heading font-black text-white text-lg shadow-lg shadow-orange-500/20">
+                S
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-heading font-extrabold text-base tracking-wide text-white">SERVOS STUDIO</h1>
+                    <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">Live Editor v2.6</span>
+                </div>
+                <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="save-status-text">Auto-Saved to LocalStorage</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- View Mode Switches -->
+        <div class="hidden md:flex items-center bg-studio-bg border border-studio-border rounded-xl p-1 gap-1">
+            <button onclick="setViewMode('split')" id="btn-mode-split" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
+                <i data-lucide="columns" class="h-3.5 w-3.5"></i>
+                <span>Split View</span>
+            </button>
+            <button onclick="setViewMode('preview')" id="btn-mode-preview" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                <i data-lucide="eye" class="h-3.5 w-3.5"></i>
+                <span>Full Preview</span>
+            </button>
+            <button onclick="setViewMode('code')" id="btn-mode-code" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+                <i data-lucide="code" class="h-3.5 w-3.5"></i>
+                <span>HTML Source</span>
+            </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button onclick="openPublishModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5 transition-all">
+                <i data-lucide="globe" class="h-4 w-4"></i>
+                <span class="hidden sm:inline">Publish Live</span>
+            </button>
+
+            <button onclick="exportHTML()" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5 transition-all">
+                <i data-lucide="download" class="h-4 w-4"></i>
+                <span class="hidden sm:inline">Export HTML</span>
+            </button>
+
+            <button onclick="resetDefaultState()" title="Reset to Original Defaults" class="p-2 text-slate-400 hover:text-red-400 hover:bg-studio-border/50 rounded-xl transition-colors">
+                <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-grow flex overflow-hidden relative">
+
+        <!-- LEFT PANEL: CMS Visual Controls -->
+        <aside id="editor-sidebar" class="w-full md:w-[480px] lg:w-[520px] bg-studio-card border-r border-studio-border flex flex-col h-full shrink-0 z-20 transition-all duration-300">
+            
+            <!-- Navigation Tabs for Site Sections -->
+            <div class="flex border-b border-studio-border overflow-x-auto text-xs font-bold bg-studio-bg/60 p-2 gap-1 shrink-0 scrollbar-none">
+                <button onclick="switchTab('tab-hero')" class="editor-tab active px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="layout-template" class="h-3.5 w-3.5"></i> Hero & Brand
+                </button>
+                <button onclick="switchTab('tab-why')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="shield-check" class="h-3.5 w-3.5"></i> Why Us
+                </button>
+                <button onclick="switchTab('tab-services')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="layers" class="h-3.5 w-3.5"></i> Flipbook Services
+                </button>
+                <button onclick="switchTab('tab-gallery')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="image" class="h-3.5 w-3.5"></i> Gallery
+                </button>
+                <button onclick="switchTab('tab-mixes')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="sun-moon" class="h-3.5 w-3.5"></i> Product Mixes
+                </button>
+                <button onclick="switchTab('tab-revenue')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="percent" class="h-3.5 w-3.5"></i> Revenue Split
+                </button>
+                <button onclick="switchTab('tab-coverage')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="map-pin" class="h-3.5 w-3.5"></i> Service Area
+                </button>
+                <button onclick="switchTab('tab-faq')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="help-circle" class="h-3.5 w-3.5"></i> FAQ
+                </button>
+                <button onclick="switchTab('tab-leads')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
+                    <i data-lucide="send" class="h-3.5 w-3.5"></i> Leads
+                </button>
+            </div>
+
+            <div class="flex-grow overflow-y-auto p-5 space-y-6">
+
+                <!-- HERO TAB -->
+                <div id="tab-hero" class="tab-content space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Hero & Header Branding</h3>
+                        <span class="text-[10px] text-slate-500">Main Banner Settings</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Top Promo Announcement Bar Text</label>
+                            <input type="text" id="cfg-promoText" oninput="updateField('promoText', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Brand Name</label>
+                            <input type="text" id="cfg-brandName" oninput="updateField('brandName', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Location Tagline</label>
+                            <input type="text" id="cfg-brandTagline" oninput="updateField('brandTagline', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Main Title Line 1</label>
+                            <input type="text" id="cfg-heroTitle1" oninput="updateField('heroTitle1', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Title Line 2 (Highlighted Gradient)</label>
+                            <input type="text" id="cfg-heroTitle2" oninput="updateField('heroTitle2', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Subtitle Paragraph</label>
+                            <textarea id="cfg-heroSubtitle" rows="3" oninput="updateField('heroSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">Primary CTA Button</label>
+                                <input type="text" id="cfg-heroCtaPrimary" oninput="updateField('heroCtaPrimary', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-300 mb-1">Contact Phone</label>
+                                <input type="text" id="cfg-contactPhone" oninput="updateField('contactPhone', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Contact Email Address</label>
+                            <input type="email" id="cfg-contactEmail" oninput="updateField('contactEmail', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WHY US TAB -->
+                <div id="tab-why" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Why Choose Us Section</h3>
+                        <span class="text-[10px] text-slate-500">Value Proposition Highlights</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Main Headline</label>
+                            <input type="text" id="cfg-whyUsTitle" oninput="updateField('whyUsTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Subtitle</label>
+                            <textarea id="cfg-whyUsSubtitle" rows="2" oninput="updateField('whyUsSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
+                        </div>
+
+                        <div id="whyus-list-container" class="space-y-3 pt-2">
+                            <!-- Dynamic Why Us Cards Inserted via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SERVICES SHOWCASE FLIPBOOK TAB -->
+                <div id="tab-services" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <div>
+                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Interactive Flipbook Services</h3>
+                            <p class="text-[11px] text-slate-500">3D Card Deck & Equipment Showcase</p>
+                        </div>
+                        <button onclick="addServiceItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Card
+                        </button>
+                    </div>
+
+                    <div id="services-list-container" class="space-y-4">
+                        <!-- Dynamic Service Items Inserted Here via JS -->
+                    </div>
+                </div>
+
+                <!-- GALLERY TAB -->
+                <div id="tab-gallery" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <div>
+                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Placements & Venue Gallery</h3>
+                            <p class="text-[11px] text-slate-500">Showcase installed equipment across Palm Beach</p>
+                        </div>
+                        <button onclick="addGalleryItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Photo
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Gallery Section Title</label>
+                            <input type="text" id="cfg-galleryTitle" oninput="updateField('galleryTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Gallery Subtitle</label>
+                            <textarea id="cfg-gallerySubtitle" rows="2" oninput="updateField('gallerySubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div id="gallery-list-container" class="space-y-4">
+                            <!-- Dynamic Gallery Cards Inserted via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCT MIXES TAB -->
+                <div id="tab-mixes" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Day & Night Curation Mixes</h3>
+                        <span class="text-[10px] text-slate-500">Product Lineup Customization</span>
+                    </div>
+
+                    <!-- Daytime Mix Config -->
+                    <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
+                        <div class="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                            <i data-lucide="sun" class="h-4 w-4"></i> Daytime Mix
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Mix Title</label>
+                            <input type="text" id="cfg-dayMixTitle" oninput="updateField('dayMixTitle', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Description</label>
+                            <textarea id="cfg-dayMixDesc" rows="2" oninput="updateField('dayMixDesc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Featured Items (comma separated)</label>
+                            <input type="text" id="cfg-dayMixItems" oninput="updateMixItems('day', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Nighttime Mix Config -->
+                    <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
+                        <div class="flex items-center gap-2 text-purple-400 font-bold text-xs">
+                            <i data-lucide="moon" class="h-4 w-4"></i> Nighttime Mix
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Mix Title</label>
+                            <input type="text" id="cfg-nightMixTitle" oninput="updateField('nightMixTitle', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Description</label>
+                            <textarea id="cfg-nightMixDesc" rows="2" oninput="updateField('nightMixDesc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Featured Items (comma separated)</label>
+                            <input type="text" id="cfg-nightMixItems" oninput="updateMixItems('night', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REVENUE SPLIT TAB -->
+                <div id="tab-revenue" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Revenue Split Model</h3>
+                        <span class="text-[10px] text-slate-500">Financial Terms</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Main Heading</label>
+                            <input type="text" id="cfg-revTitle" oninput="updateField('revTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Subtitle</label>
+                            <textarea id="cfg-revSubtitle" rows="2" oninput="updateField('revSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 1: Trial Period Text</label>
+                            <textarea id="cfg-revStep1" rows="2" oninput="updateField('revStep1', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 2: 10% Revenue Share Rule Text</label>
+                            <textarea id="cfg-revStep2" rows="2" oninput="updateField('revStep2', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 3: Under Threshold / Rental Option Text</label>
+                            <textarea id="cfg-revStep3" rows="2" oninput="updateField('revStep3', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COVERAGE AREA TAB -->
+                <div id="tab-coverage" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Coverage & Cities</h3>
+                        <span class="text-[10px] text-slate-500">Service Radius</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Service Area Headline</label>
+                            <input type="text" id="cfg-coverageTitle" oninput="updateField('coverageTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Service Area Subtext</label>
+                            <textarea id="cfg-coverageDesc" rows="2" oninput="updateField('coverageDesc', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Served Cities (Comma Separated Tags)</label>
+                            <textarea id="cfg-citiesList" rows="3" oninput="updateCitiesList(this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FAQ TAB -->
+                <div id="tab-faq" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <div>
+                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">FAQ Accordion Items</h3>
+                            <p class="text-[11px] text-slate-500">Add or edit customer questions</p>
+                        </div>
+                        <button onclick="addFaqItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
+                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Question
+                        </button>
+                    </div>
+
+                    <div id="faq-list-container" class="space-y-4">
+                        <!-- Dynamic FAQ Items Inserted Here -->
+                    </div>
+                </div>
+
+                <!-- LEADS TAB -->
+                <div id="tab-leads" class="tab-content hidden space-y-5">
+                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
+                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Form Lead Settings</h3>
+                        <span class="text-[10px] text-slate-500">Destination Endpoint</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Form Lead Destination Email / Formspree URL</label>
+                            <input type="text" id="cfg-formspreeUrl" oninput="updateField('formspreeUrl', this.value)" placeholder="https://formspree.io/f/rileyc@servosvending.com" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                            <p class="text-[11px] text-slate-500 mt-1">Paste your Formspree endpoint URL or custom API POST endpoint.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Submit Button Text</label>
+                            <input type="text" id="cfg-formSubmitBtnText" oninput="updateField('formSubmitBtnText', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs leading-relaxed">
+                            <i data-lucide="info" class="h-4 w-4 inline mr-1"></i>
+                            <strong>Netlify Native Forms Note:</strong> When hosting on Netlify, form submissions automatically capture inside Netlify Forms tab if hosted on their service.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- RIGHT PANEL: Interactive Preview & Code Output -->
+        <main class="flex-grow flex flex-col bg-[#07090E] relative overflow-hidden">
+            
+            <!-- Device & View Toolbar -->
+            <div id="preview-toolbar" class="h-12 bg-studio-card/80 border-b border-studio-border px-4 flex items-center justify-between shrink-0 z-10">
+                
+                <!-- Viewport Switcher -->
+                <div class="flex items-center gap-1 bg-studio-bg border border-studio-border rounded-lg p-0.5">
+                    <button onclick="setDevice('desktop')" id="device-desktop" class="device-btn active p-1.5 rounded text-xs font-bold transition-all" title="Desktop View (100%)">
+                        <i data-lucide="monitor" class="h-4 w-4"></i>
+                    </button>
+                    <button onclick="setDevice('tablet')" id="device-tablet" class="device-btn p-1.5 rounded text-xs font-bold text-slate-400 hover:text-white transition-all" title="Tablet View (768px)">
+                        <i data-lucide="tablet" class="h-4 w-4"></i>
+                    </button>
+                    <button onclick="setDevice('mobile')" id="device-mobile" class="device-btn p-1.5 rounded text-xs font-bold text-slate-400 hover:text-white transition-all" title="Mobile View (375px)">
+                        <i data-lucide="smartphone" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <!-- Live Indicators -->
+                <div class="flex items-center gap-3">
+                    <button onclick="refreshIframe()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-bold transition-colors">
+                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i> Reload Preview
+                    </button>
+
+                    <div class="text-[11px] font-mono text-slate-500 hidden sm:block">
+                        <span id="viewport-size-indicator">100% Fluid Width</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PREVIEW CONTAINER -->
+            <div id="preview-wrapper" class="flex-grow p-2 sm:p-6 flex items-center justify-center overflow-auto relative">
+                <div id="preview-viewport-container" class="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-studio-border/50 relative">
+                    <!-- Updated iframe pointing to root landing page -->
+        <iframe 
+            id="live-iframe" 
+            src="../index.html" 
+            class="w-full h-full border-none" 
+            title="Live Site Preview">
+        </iframe>
+                </div>
+            </div>
+
+            <!-- SOURCE CODE CONTAINER -->
+            <div id="code-wrapper" class="hidden flex-grow p-6 flex flex-col relative overflow-hidden bg-studio-bg">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-xs font-bold text-slate-400 font-mono">Standalone index.html Output</span>
+                    <button onclick="copySourceCode()" class="bg-studio-card hover:bg-studio-border text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-studio-border">
+                        <i data-lucide="copy" class="h-3.5 w-3.5"></i> Copy Source Code
+                    </button>
+                </div>
+                <textarea id="source-code-area" readonly class="flex-grow bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-studio-border focus:outline-none resize-none leading-relaxed"></textarea>
+            </div>
+        </main>
+    </div>
+
+    <!-- PUBLISH TO GITHUB MODAL -->
+    <div id="publish-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-studio-card border border-studio-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 text-left">
+            <div class="flex justify-between items-center border-b border-studio-border pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="github" class="h-5 w-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-heading font-extrabold text-base text-white">Publish Live to GitHub / Netlify</h3>
+                        <p class="text-[11px] text-slate-400">Direct repository commit integration</p>
+                    </div>
+                </div>
+                <button onclick="closePublishModal()" class="text-slate-400 hover:text-white p-1">
+                    <i data-lucide="x" class="h-5 w-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">GitHub Personal Access Token (PAT) *</label>
+                    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Repo Name (owner/repo) *</label>
+                        <input type="text" id="gh-repo" placeholder="username/servos-site" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">Branch Name</label>
+                        <input type="text" id="gh-branch" value="main" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Target File Path</label>
+                    <input type="text" id="gh-path" value="index.html" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">Commit Message</label>
+                    <input type="text" id="gh-commit" value="Update website content via Servos Studio" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-3">
+                <button onclick="closePublishModal()" class="w-1/2 bg-studio-bg hover:bg-studio-border text-slate-300 font-bold py-3 rounded-xl transition-colors">
+                    Cancel
+                </button>
+                <button onclick="executeGitHubCommit()" id="gh-submit-btn" class="w-1/2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all">
+                    <i data-lucide="git-commit" class="h-4 w-4"></i>
+                    <span>Commit & Deploy</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        
+        // Initial Default Website Data Schema (Includes Restored Why Us & Gallery + Flipbook Services)
+        const DEFAULT_STATE = {
+            promoText: "30-Day Risk-Free Trial | Earn 10% Revenue Share over $1,000 gross!",
+            brandName: "SERVOS VENDING",
+            brandTagline: "Palm Beach Automated Retail & Amenities",
+            heroTitle1: "Premium Automated Services.",
+            heroTitle2: "Zero Hassle. Real Revenue Share.",
+            heroSubtitle: "Elevate your venue with factory-direct smart vending, Boost Barz phone charging stations, and VTM trading card kiosks across Palm Beach County. 100% managed with zero capital cost.",
+            heroCtaPrimary: "Start 30-Day Risk-Free Trial",
+            contactPhone: "(561) 555-0199",
+            contactEmail: "rileyc@servosvending.com",
+            
+            // Restored Why Us Section Data
+            whyUsTitle: "Why Premier Venues Choose Servos",
+            whyUsSubtitle: "We remove all operational headaches so property managers can offer high-end amenities while earning passive revenue.",
+            whyUsItems: [
+                {
+                    icon: "dollar-sign",
+                    title: "$0 Cost & Turnkey Setup",
+                    desc: "We buy, install, insure, stock, and maintain every machine at zero expense to your property."
+                },
+                {
+                    icon: "cpu",
+                    title: "24/7 Smart Telemetry",
+                    desc: "Real-time AI monitoring ensures machines never sit empty and inventory matches tenant preferences."
+                },
+                {
+                    icon: "clock",
+                    title: "Rapid Local PB Service",
+                    desc: "Dedicated technicians based right here in Palm Beach County guarantee rapid restocks and maintenance."
+                },
+                {
+                    icon: "trending-up",
+                    title: "Profitable Revenue Share",
+                    desc: "Receive 10% of monthly gross revenue once threshold is met, turned into pure profit for your venue."
+                }
+            ],
+
+            // Services Array for Flipbook Showcase
+            services: [
+                {
+                    id: 1,
+                    supplier: "Vending.com Direct",
+                    supplierColor: "orange",
+                    title: "Combo & AI Smart Coolers",
+                    sub: "Snacks, Cold Drinks & Fresh Meals",
+                    desc: "Supplied directly from the factory floor by Vending.com (built in USA). Features dual-zone climate control, anti-fog glass, and AI grab-and-go contactless checkout.",
+                    bullets: ["Factory direct reliability & warranty", "AI smart glass coolers & dual combo units", "Apple Pay, Google Pay & Tap-to-Pay"],
+                    img: "https://images.unsplash.com/photo-1575224300306-1b8da36134ec?auto=format&fit=crop&w=800&q=80",
+                    techSpecs: {
+                        dimensions: "72\" H x 39\" W x 35\" D",
+                        power: "Standard 115V / 60Hz 12A",
+                        payments: "Nayax Touch (NFC, Chip, Apple Pay)",
+                        telemetry: "24/7 Cellular Remote Telemetry"
+                    }
+                },
+                {
+                    id: 2,
+                    supplier: "Boost Barz Texas",
+                    supplierColor: "purple",
+                    title: "Boost Barz Phone Charging",
+                    sub: "Portable Power Pack Rental Kiosks",
+                    desc: "Supplied by Boost Barz out of Texas. Customers rent a portable battery, charge on the go, and return it when finished. Keeps patrons inside your venue much longer!",
+                    bullets: ["Increases customer dwell time & spending", "Prevents patrons from leaving due to low battery", "Perfect for bars, nightlife, gyms & golf courses"],
+                    img: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80",
+                    techSpecs: {
+                        dimensions: "24\" H x 18\" W x 14\" D (Counter or Stand)",
+                        power: "Low Power 110V Wall Plug",
+                        capacity: "8 to 48 Reusable Power Banks",
+                        returns: "Universal Cross-Kiosk Return System"
+                    }
+                },
+                {
+                    id: 3,
+                    supplier: "VTM Industry Leaders",
+                    supplierColor: "teal",
+                    title: "Trading Card Vending Kiosks",
+                    sub: "Pokémon & Sports Pack Dispensers",
+                    desc: "Supplied by VTM, the undisputed leaders in card vending. Delivers Pokémon booster packs, sports cards, and collectible packs directly to collectors and enthusiasts.",
+                    bullets: ["Massive appeal for collectors & families", "High margin impulse purchases with zero counter space", "Ideal for C-stores, venues & family lounges"],
+                    img: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?auto=format&fit=crop&w=800&q=80",
+                    techSpecs: {
+                        dimensions: "65\" H x 30\" W x 28\" D",
+                        security: "Reinforced Steel Vault Lock",
+                        dispenser: "Precision Servo Drop Sensors",
+                        display: "21.5\" Touchscreen Ad Display"
+                    }
+                }
+            ],
+
+            // Restored Gallery Section Data
+            galleryTitle: "Our Installed Venues & Placements",
+            gallerySubtitle: "Take a look at how our modern automated equipment blends into premier Palm Beach locations.",
+            galleryImages: [
+                {
+                    title: "Luxury High-Rise Lounge",
+                    category: "Residential",
+                    img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                    caption: "Dual Glass-Front AI Cooler placed in Downtown West Palm Beach residential tower."
+                },
+                {
+                    title: "Nightlife & Cocktail Bar",
+                    category: "Hospitality",
+                    img: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
+                    caption: "Boost Barz Portable Charging Station keeping patrons powered up late into the night."
+                },
+                {
+                    title: "Boutique Fitness Club",
+                    category: "Wellness",
+                    img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+                    caption: "Daytime Wellness Snack & Clean Energy Bar stocked for workout enthusiasts."
+                },
+                {
+                    title: "Family Entertainment Center",
+                    category: "Retail",
+                    img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
+                    caption: "VTM Trading Card kiosk generating high impulse sales in family gaming center."
+                }
+            ],
+
+            // Day & Night Mixes
+            dayMixTitle: "Daytime Wellness Mix",
+            dayMixDesc: "Engineered for high performance, daily focus, and clean hydration. Packed with premium cold brew, clean energy, artisanal snacks, and nutritious bites.",
+            dayMixItems: ["Cold Brew Coffee & Espresso", "Celsius & Clean Energy", "Sparkling Waters & Electrolytes", "Organic Protein Bars & Nuts"],
+
+            nightMixTitle: "Nighttime Vibes Mix",
+            nightMixDesc: "Tailored for late-night crowds, nightlife venues, and party venues. Includes hydration recovery kits, premium mixers, high-energy drinks, and late-night cravings.",
+            nightMixItems: ["Liquid I.V. & Recovery Packs", "Red Bull & Craft Mixers", "Gourmet Late-Night Snacks", "Hangover Prevention & Gum"],
+
+            // Revenue Section
+            revTitle: "Our Revenue Share Model",
+            revSubtitle: "We believe in earning your trust. That's why every placement starts with a 30-day trial and a clear, profitable revenue share structure.",
+            revStep1: "Every placement starts with a 30-day trial period to measure machine volume, peak traffic times, and resident feedback.",
+            revStep2: "If the machine breaks the $1,000 monthly gross mark during any month of its contract, the business owner receives 10% of monthly gross!",
+            revStep3: "If monthly sales are under $1,000, Servos retains profits to cover stocking and telemetry costs. Flat rental fee options are also available.",
+
+            // Service Area
+            coverageTitle: "Proudly Serving All of Palm Beach County",
+            coverageDesc: "Our dedicated warehouse and technician fleet provide fast delivery, emergency maintenance response, and smart telemetry restocking throughout Palm Beach County.",
+            cities: ["West Palm Beach", "Boca Raton", "Delray Beach", "Jupiter", "Palm Beach Gardens", "Wellington", "Boynton Beach", "Lake Worth"],
+
+            // FAQs
+            faqs: [
+                {
+                    q: "How does the 30-day trial and revenue split work?",
+                    a: "Every placement begins with a 30-day trial period. If the machine earns over $1,000 gross monthly revenue, your venue receives 10% of monthly gross! If under $1,000, Servos retains profits for operational costs."
+                },
+                {
+                    q: "Who manufactures your machines and charging stations?",
+                    a: "Our combo machines and AI smart coolers are supplied factory-direct by Vending.com (built in USA). Our phone charging kiosks are supplied by Boost Barz out of Texas, and our trading card machines are manufactured by VTM."
+                },
+                {
+                    q: "What is the difference between Daytime and Nighttime mixes?",
+                    a: "Our Daytime Mix focuses on cold brew coffee, Celsius energy, organic protein bars, and sparkling water. Our Nighttime Mix caters to nightlife spots with Liquid I.V. recovery packs, mixers, Red Bull, and late-night snacks."
+                },
+                {
+                    q: "How fast can a service or machine be installed?",
+                    a: "Once your venue request is submitted, our local Palm Beach technicians complete placement, setup, testing, and stocking within 5 to 7 business days."
+                }
+            ],
+
+            // Leads Endpoint
+            formspreeUrl: "https://formspree.io/f/rileyc@servosvending.com",
+            formSubmitBtnText: "Submit 30-Day Risk-Free Trial Request"
+        };
+
+        let state = {};
+
+        function loadSavedState() {
+            const saved = localStorage.getItem('servos_editor_state_v2');
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                } catch(e) {
+                    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                }
+            } else {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
+        }
+
+        function saveState() {
+            localStorage.setItem('servos_editor_state_v2', JSON.stringify(state));
+            const statusText = document.getElementById('save-status-text');
+            statusText.innerText = "Auto-Saved (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ")";
+            renderIframePreview();
+        }
+
+        function resetDefaultState() {
+            if (confirm("Reset all custom edits back to factory default values?")) {
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                saveState();
+                populateFormInputs();
+                renderWhyUsList();
+                renderServicesList();
+                renderGalleryList();
+                renderFaqList();
+                showToast("Reset to default configuration!");
+            }
+        }
+
+        function updateField(key, val) {
+            state[key] = val;
+            saveState();
+        }
+
+        function updateMixItems(type, val) {
+            const arr = val.split(',').map(s => s.trim()).filter(Boolean);
+            if (type === 'day') state.dayMixItems = arr;
+            if (type === 'night') state.nightMixItems = arr;
+            saveState();
+        }
+
+        function updateCitiesList(val) {
+            state.cities = val.split(',').map(s => s.trim()).filter(Boolean);
+            saveState();
+        }
+
+        // Generate Complete Standalone Production HTML Website (Including Flipbook Showcase, Restored Why Us, and Gallery)
+        function generateStandaloneHTML() {
+            return `<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${state.brandName} | Automated Retail & Amenities in Palm Beach County</title>
+    
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"><\/script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        servos: {
+                            orange: '#ffbe55',
+                            orangeDark: '#ff773d',
+                            orangeHover: '#e05d25',
+                            darkBg: '#0f1014',
+                            darkCard: '#1a1b23',
+                            darkBorder: '#2a2b36'
+                        }
+                    }
+                }
+            }
+        }
+    <\/script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f1014; }
+        ::-webkit-scrollbar-thumb { background: #2a2b36; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff773d; }
+        .grad-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); }
+        .grad-text-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        /* 3D Flip Card Deck CSS */
+        .perspective-1000 { perspective: 1000px; }
+        .flip-card-inner {
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .faq-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; }
+        .faq-card.active .faq-content { max-height: 400px; opacity: 1; }
+        .faq-icon { transition: transform 0.3s ease; }
+        .faq-card.active .faq-icon { transform: rotate(180deg); }
+    </style>
+</head>
+<body class="font-sans bg-slate-50 dark:bg-servos-darkBg text-slate-900 dark:text-slate-100 transition-colors">
+
+    <!-- Top Announcement Bar -->
+    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-xs py-2.5 px-4 text-center tracking-wide flex justify-center items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] uppercase font-extrabold">
+            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-amber-300"></i> Special Offer
+        </span> 
+        <span>${state.promoText}</span>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-servos-darkBg/90 backdrop-blur-md border-b border-slate-200 dark:border-servos-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="#" class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center font-heading font-black text-white text-xl shadow-lg">
+                        ${state.brandName.charAt(0)}
+                    </div>
+                    <div>
+                        <span class="font-heading font-black text-lg tracking-wide text-slate-900 dark:text-white block leading-none">${state.brandName}</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mt-1">${state.brandTagline}</span>
+                    </div>
+                </a>
+
+                <nav class="hidden md:flex items-center space-x-7 text-xs sm:text-sm font-semibold">
+                    <a href="#why-us" class="hover:text-servos-orangeDark transition-colors">Why Us</a>
+                    <a href="#services" class="hover:text-servos-orangeDark transition-colors">Services Flipbook</a>
+                    <a href="#gallery" class="hover:text-servos-orangeDark transition-colors">Placements</a>
+                    <a href="#mixes" class="hover:text-servos-orangeDark transition-colors">Mixes</a>
+                    <a href="#revenue" class="hover:text-servos-orangeDark transition-colors">Revenue Share</a>
+                    <a href="#coverage" class="hover:text-servos-orangeDark transition-colors">Coverage</a>
+                    <a href="#faq" class="hover:text-servos-orangeDark transition-colors">FAQ</a>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:scale-105 transition-transform">
+                        ${state.heroCtaPrimary}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 sm:py-24 px-4 max-w-5xl mx-auto text-center space-y-6">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Palm Beach County Automated Retail & Amenities</span>
+        </div>
+        
+        <h1 class="font-heading text-4xl sm:text-6xl font-black text-slate-900 dark:text-white leading-tight">
+            ${state.heroTitle1}<br>
+            <span class="grad-text-orange">${state.heroTitle2}</span>
+        </h1>
+        
+        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            ${state.heroSubtitle}
+        </p>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+            <a href="#builder" class="grad-orange text-white px-8 py-4 rounded-2xl font-extrabold text-base shadow-lg hover:scale-105 transition-transform">
+                ${state.heroCtaPrimary}
+            </a>
+            <a href="tel:${state.contactPhone.replace(/\D/g,'')}" class="bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder px-7 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
+                <i data-lucide="phone" class="h-4 w-4 text-orange-500"></i>
+                <span>Call ${state.contactPhone}</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- RESTORED: WHY CHOOSE US SECTION -->
+    <section id="why-us" class="py-16 bg-slate-100 dark:bg-slate-900/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">The Servos Advantage</span>
+                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.whyUsTitle}</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-400">${state.whyUsSubtitle}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                ${state.whyUsItems.map(item => `
+                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
+                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
+                            <i data-lucide="${item.icon}" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">${item.title}</h3>
+                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${item.desc}</p>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPRESSED INTERACTIVE SERVICES 3D FLIPBOOK & DECK SHOWCASE -->
+    <section id="services" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Interactive Equipment Deck</span>
+                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Services & Machine Flipbook</h2>
+                <p class="text-xs text-slate-500">Select a category below or flip cards to examine detailed technical specs.</p>
+            </div>
+
+            <!-- Category Tab Switcher -->
+            <div class="flex justify-center flex-wrap gap-2">
+                ${state.services.map((s, idx) => `
+                    <button onclick="switchServiceCard(${idx})" id="svc-btn-${idx}" class="svc-tab-btn ${idx === 0 ? 'bg-orange-500 text-white shadow-lg' : 'bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300'} px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                        <span>${s.title}</span>
+                    </button>
+                `).join('')}
+            </div>
+
+            <!-- Active Flip Card Container -->
+            <div class="max-w-4xl mx-auto perspective-1000">
+                ${state.services.map((s, idx) => `
+                    <div id="svc-card-${idx}" class="svc-card-deck ${idx !== 0 ? 'hidden' : ''} flip-card relative w-full">
+                        <div class="flip-card-inner relative w-full min-h-[480px] bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-2xl overflow-hidden">
+                            
+                            <!-- FRONT SIDE OF FLIP CARD -->
+                            <div class="flip-card-front w-full h-full p-6 sm:p-10 flex flex-col md:flex-row gap-8 justify-between items-center">
+                                <div class="w-full md:w-1/2 space-y-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-orange-500/20 text-orange-500 border border-orange-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase">${s.supplier}</span>
+                                        <span class="text-[10px] text-slate-400 font-mono">Card 0${idx+1} / 0${state.services.length}</span>
+                                    </div>
+
+                                    <h3 class="font-heading font-black text-3xl text-slate-900 dark:text-white">${s.title}</h3>
+                                    <p class="text-xs font-bold text-orange-500 font-mono">${s.sub}</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${s.desc}</p>
+
+                                    <ul class="space-y-2 text-xs font-semibold pt-1">
+                                        ${s.bullets.map(b => `<li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> ${b}</li>`).join('')}
+                                    </ul>
+
+                                    <div class="pt-4 flex items-center gap-3">
+                                        <button onclick="toggleCardFlip(${idx})" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-300 dark:border-slate-700 transition-colors">
+                                            <i data-lucide="rotate-3d" class="h-4 w-4 text-orange-500"></i>
+                                            <span>Flip for Tech Specs</span>
+                                        </button>
+                                        <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:scale-105 transition-transform">
+                                            Request Placement
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="w-full md:w-1/2 h-64 md:h-80 rounded-2xl overflow-hidden relative shadow-inner group">
+                                    <img src="${s.img}" alt="${s.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Equipment+Showcase'">
+                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
+                                        <span class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
+                                            Palm Beach Factory Direct Managed
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- BACK SIDE OF FLIP CARD (TECHNICAL SPECS) -->
+                            <div class="flip-card-back absolute inset-0 w-full h-full p-6 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
+                                <div class="space-y-6">
+                                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                                        <div>
+                                            <span class="text-[10px] text-orange-400 font-mono uppercase tracking-widest block">Hardware & Telemetry Architecture</span>
+                                            <h4 class="font-heading font-black text-2xl text-white">${s.title} Specs</h4>
+                                        </div>
+                                        <button onclick="toggleCardFlip(${idx})" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
+                                            <i data-lucide="rotate-3d" class="h-5 w-5 text-orange-400"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Dimensions & Footprint</span>
+                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.dimensions : 'Standard Commercial Footprint'}</p>
+                                        </div>
+                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Power & Energy Requirements</span>
+                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.power : 'Standard 115V Outlet'}</p>
+                                        </div>
+                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Payment Terminal</span>
+                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.payments : 'Contactless NFC & Apple Pay'}</p>
+                                        </div>
+                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Telemetry & Security</span>
+                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.telemetry : '24/7 Remote Inventory Telemetry'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-4 flex justify-between items-center border-t border-slate-800">
+                                    <button onclick="toggleCardFlip(${idx})" class="text-xs font-bold text-orange-400 hover:underline flex items-center gap-1">
+                                        &larr; Back to Front Overview
+                                    </button>
+                                    <a href="#builder" class="grad-orange text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-md">
+                                        Request Equipment Placement
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Flipbook Controls -->
+            <div class="flex justify-center items-center gap-4 pt-2">
+                <button onclick="prevServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
+                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
+                </button>
+                <span id="svc-deck-indicator" class="text-xs font-mono font-bold text-slate-500">1 / ${state.services.length}</span>
+                <button onclick="nextServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
+                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- RESTORED: GALLERY SECTION -->
+    <section id="gallery" class="py-16 bg-slate-100 dark:bg-slate-900/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Venue Showcase</span>
+                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.galleryTitle}</h2>
+                <p class="text-sm text-slate-600 dark:text-slate-400">${state.gallerySubtitle}</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                ${state.galleryImages.map(img => `
+                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
+                        <div class="h-48 overflow-hidden relative">
+                            <img src="${img.img}" alt="${img.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
+                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
+                                ${img.category}
+                            </span>
+                        </div>
+                        <div class="p-5 space-y-2">
+                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">${img.title}</h3>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${img.caption}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <!-- DAY & NIGHT MIXES SECTION -->
+    <section id="mixes" class="py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="text-center max-w-2xl mx-auto space-y-2">
+                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Tailored Curation</span>
+                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Daytime Mix vs. Nighttime Mix</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Daytime Mix -->
+                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-heading font-black text-2xl text-amber-500">${state.dayMixTitle}</h3>
+                        <i data-lucide="sun" class="h-6 w-6 text-amber-500"></i>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">${state.dayMixDesc}</p>
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        ${state.dayMixItems.map(item => `
+                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> ${item}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Nighttime Mix -->
+                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-heading font-black text-2xl text-purple-400">${state.nightMixTitle}</h3>
+                        <i data-lucide="moon" class="h-6 w-6 text-purple-400"></i>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-300">${state.nightMixDesc}</p>
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        ${state.nightMixItems.map(item => `
+                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> ${item}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVENUE SPLIT SECTION -->
+    <section id="revenue" class="py-16 bg-slate-100 dark:bg-slate-900/50">
+        <div class="max-w-5xl mx-auto px-4 space-y-8 text-center">
+            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.revTitle}</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">${state.revSubtitle}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
+                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">1</div>
+                    <h4 class="font-heading font-bold text-lg">30-Day Risk-Free Trial</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep1}</p>
+                </div>
+
+                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
+                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">2</div>
+                    <h4 class="font-heading font-bold text-lg">10% Revenue Share</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep2}</p>
+                </div>
+
+                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
+                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">3</div>
+                    <h4 class="font-heading font-bold text-lg">Flexible Options</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep3}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COVERAGE AREA SECTION -->
+    <section id="coverage" class="py-16">
+        <div class="max-w-5xl mx-auto px-4 text-center space-y-6">
+            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.coverageTitle}</h2>
+            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">${state.coverageDesc}</p>
+            
+            <div class="flex flex-wrap justify-center gap-2 pt-2">
+                ${state.cities.map(c => `<span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">${c}</span>`).join('')}
+            </div>
+        </div>
+    </section>
+
+    <!-- FORM REQUEST BUILDER -->
+    <section id="builder" class="py-16 bg-slate-100 dark:bg-slate-900/50">
+        <div class="max-w-3xl mx-auto px-4">
+            <div class="bg-white dark:bg-servos-darkCard p-8 rounded-3xl border border-slate-200 dark:border-servos-darkBorder space-y-6 shadow-xl">
+                <div class="text-center space-y-2">
+                    <h2 class="font-heading text-2xl font-black">Request Placement Trial</h2>
+                    <p class="text-xs text-slate-500">Submit your venue request in under 60 seconds.</p>
+                </div>
+
+                <form action="${state.formspreeUrl}" method="POST" class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Your Name *</label>
+                            <input type="text" name="full_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Work Email *</label>
+                            <input type="email" name="email" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Phone *</label>
+                            <input type="tel" name="phone" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1">Venue / Business Name *</label>
+                            <input type="text" name="property_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full grad-orange text-white py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.01] transition-transform">
+                        ${state.formSubmitBtnText}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="py-16">
+        <div class="max-w-4xl mx-auto px-4 space-y-8">
+            <h2 class="font-heading text-3xl font-black text-center">Frequently Asked Questions</h2>
+            <div class="space-y-3">
+                ${state.faqs.map((f, i) => `
+                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
+                        <button type="button" onclick="toggleFaq(${i})" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
+                            <span>${f.q}</span>
+                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                            </div>
+                        </button>
+                        <div class="faq-content">
+                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">${f.a}</p>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-950 text-slate-400 py-10 text-xs border-t border-slate-800 text-center space-y-2">
+        <p>&copy; ${new Date().getFullYear()} ${state.brandName}. All rights reserved.</p>
+        <p>Contact: ${state.contactPhone} | ${state.contactEmail}</p>
+    </footer>
+
+    <script>
+        let currentSvcCard = 0;
+        const totalSvcCards = ${state.services.length};
+
+        function switchServiceCard(index) {
+            currentSvcCard = index;
+            document.querySelectorAll('.svc-card-deck').forEach((el, i) => {
+                if (i === index) el.classList.remove('hidden');
+                else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flipped');
+                }
+            });
+
+            document.querySelectorAll('.svc-tab-btn').forEach((btn, i) => {
+                if (i === index) {
+                    btn.className = "svc-tab-btn bg-orange-500 text-white shadow-lg px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
+                } else {
+                    btn.className = "svc-tab-btn bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
+                }
+            });
+
+            document.getElementById('svc-deck-indicator').innerText = (index + 1) + " / " + totalSvcCards;
+        }
+
+        function nextServiceCard() {
+            let next = (currentSvcCard + 1) % totalSvcCards;
+            switchServiceCard(next);
+        }
+
+        function prevServiceCard() {
+            let prev = (currentSvcCard - 1 + totalSvcCards) % totalSvcCards;
+            switchServiceCard(prev);
+        }
+
+        function toggleCardFlip(index) {
+            const card = document.getElementById('svc-card-' + index);
+            if (card) card.classList.toggle('flipped');
+        }
+
+        function toggleFaq(index) {
+            const cards = document.querySelectorAll('.faq-card');
+            cards.forEach((card, i) => {
+                if (i === index) card.classList.toggle('active');
+                else card.classList.remove('active');
+            });
+        }
+
+        window.onload = function() { lucide.createIcons(); }
+    <\/script>
+</body>
+</html>`;
+        }
+  function renderIframePreview() {
+    const html = generateStandaloneHTML();
+    const iframe = document.getElementById('live-iframe');
+    if (iframe) iframe.srcdoc = html;
+    const sourceArea = document.getElementById('source-code-area');
+    if (sourceArea) sourceArea.value = html;
+  }
+
+        function populateFormInputs() {
+            document.getElementById('cfg-promoText').value = state.promoText;
+            document.getElementById('cfg-brandName').value = state.brandName;
+            document.getElementById('cfg-brandTagline').value = state.brandTagline;
+            document.getElementById('cfg-heroTitle1').value = state.heroTitle1;
+            document.getElementById('cfg-heroTitle2').value = state.heroTitle2;
+            document.getElementById('cfg-heroSubtitle').value = state.heroSubtitle;
+            document.getElementById('cfg-heroCtaPrimary').value = state.heroCtaPrimary;
+            document.getElementById('cfg-contactPhone').value = state.contactPhone;
+            document.getElementById('cfg-contactEmail').value = state.contactEmail;
+
+            document.getElementById('cfg-whyUsTitle').value = state.whyUsTitle || "";
+            document.getElementById('cfg-whyUsSubtitle').value = state.whyUsSubtitle || "";
+
+            document.getElementById('cfg-galleryTitle').value = state.galleryTitle || "";
+            document.getElementById('cfg-gallerySubtitle').value = state.gallerySubtitle || "";
+
+            document.getElementById('cfg-dayMixTitle').value = state.dayMixTitle;
+            document.getElementById('cfg-dayMixDesc').value = state.dayMixDesc;
+            document.getElementById('cfg-dayMixItems').value = state.dayMixItems.join(', ');
+
+            document.getElementById('cfg-nightMixTitle').value = state.nightMixTitle;
+            document.getElementById('cfg-nightMixDesc').value = state.nightMixDesc;
+            document.getElementById('cfg-nightMixItems').value = state.nightMixItems.join(', ');
+
+            document.getElementById('cfg-revTitle').value = state.revTitle;
+            document.getElementById('cfg-revSubtitle').value = state.revSubtitle;
+            document.getElementById('cfg-revStep1').value = state.revStep1;
+            document.getElementById('cfg-revStep2').value = state.revStep2;
+            document.getElementById('cfg-revStep3').value = state.revStep3;
+
+            document.getElementById('cfg-coverageTitle').value = state.coverageTitle;
+            document.getElementById('cfg-coverageDesc').value = state.coverageDesc;
+            document.getElementById('cfg-citiesList').value = state.cities.join(', ');
+
+            document.getElementById('cfg-formspreeUrl').value = state.formspreeUrl;
+            document.getElementById('cfg-formSubmitBtnText').value = state.formSubmitBtnText;
+        }
+
+        // Render Why Choose Us List Editor
+        function renderWhyUsList() {
+            const container = document.getElementById('whyus-list-container');
+            if (!state.whyUsItems) return;
+            container.innerHTML = state.whyUsItems.map((item, index) => `
+                <div class="bg-studio-bg p-3.5 rounded-2xl border border-studio-border space-y-2">
+                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-1.5">
+                        <span class="font-bold text-[11px] text-orange-400">Pillar #${index + 1}</span>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Title</label>
+                        <input type="text" value="${item.title}" oninput="updateWhyUsProp(${index}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Description</label>
+                        <textarea rows="2" oninput="updateWhyUsProp(${index}, 'desc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${item.desc}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateWhyUsProp(index, prop, val) {
+            state.whyUsItems[index][prop] = val;
+            saveState();
+        }
+
+        // Render Dynamic Services Flipbook Cards Editor
+        function renderServicesList() {
+            const container = document.getElementById('services-list-container');
+            container.innerHTML = state.services.map((s, index) => `
+                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3 relative">
+                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
+                        <span class="font-bold text-xs text-orange-400">Service Deck Card #${index + 1}</span>
+                        <button onclick="removeServiceItem(${s.id})" class="text-slate-500 hover:text-red-400 p-1">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Supplier Tag</label>
+                            <input type="text" value="${s.supplier}" oninput="updateServiceProp(${s.id}, 'supplier', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Card Title</label>
+                            <input type="text" value="${s.title}" oninput="updateServiceProp(${s.id}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Photo Image URL</label>
+                        <input type="text" value="${s.img || ''}" oninput="updateServiceProp(${s.id}, 'img', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Description Overview</label>
+                        <textarea rows="2" oninput="updateServiceProp(${s.id}, 'desc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${s.desc}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateServiceProp(id, prop, val) {
+            const item = state.services.find(x => x.id === id);
+            if (item) {
+                item[prop] = val;
+                saveState();
+            }
+        }
+
+        function addServiceItem() {
+            const newId = Date.now();
+            state.services.push({
+                id: newId,
+                supplier: "Custom Vendor",
+                supplierColor: "orange",
+                title: "New Automated Equipment",
+                sub: "Custom Retail Line",
+                desc: "High quality automated equipment supplied and managed for your venue.",
+                bullets: ["24/7 Smart Telemetry", "Contactless Payments", "Full Restocking Service"],
+                img: "https://images.unsplash.com/photo-1575224300306-1b8da36134ec?auto=format&fit=crop&w=800&q=80",
+                techSpecs: {
+                    dimensions: "Commercial Footprint",
+                    power: "Standard 115V Outlet",
+                    payments: "Contactless NFC & Cards",
+                    telemetry: "24/7 Cellular Telemetry"
+                }
+            });
+            saveState();
+            renderServicesList();
+        }
+
+        function removeServiceItem(id) {
+            state.services = state.services.filter(s => s.id !== id);
+            saveState();
+            renderServicesList();
+        }
+
+        // Render Gallery Items List Editor
+        function renderGalleryList() {
+            const container = document.getElementById('gallery-list-container');
+            if (!state.galleryImages) return;
+            container.innerHTML = state.galleryImages.map((img, index) => `
+                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
+                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
+                        <span class="font-bold text-xs text-orange-400">Gallery Photo #${index + 1}</span>
+                        <button onclick="removeGalleryItem(${index})" class="text-slate-500 hover:text-red-400 p-1">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Venue Title</label>
+                            <input type="text" value="${img.title}" oninput="updateGalleryProp(${index}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Category Tag</label>
+                            <input type="text" value="${img.category}" oninput="updateGalleryProp(${index}, 'category', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Photo Image URL</label>
+                        <input type="text" value="${img.img}" oninput="updateGalleryProp(${index}, 'img', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Caption</label>
+                        <textarea rows="2" oninput="updateGalleryProp(${index}, 'caption', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${img.caption}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateGalleryProp(index, prop, val) {
+            state.galleryImages[index][prop] = val;
+            saveState();
+        }
+
+        function addGalleryItem() {
+            state.galleryImages.push({
+                title: "New Placement Location",
+                category: "Hospitality",
+                img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
+                caption: "Description of the equipment installed at this venue."
+            });
+            saveState();
+            renderGalleryList();
+        }
+
+        function removeGalleryItem(index) {
+            state.galleryImages.splice(index, 1);
+            saveState();
+            renderGalleryList();
+        }
+
+        // Render FAQ List Editor
+        function renderFaqList() {
+            const container = document.getElementById('faq-list-container');
+            container.innerHTML = state.faqs.map((f, index) => `
+                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
+                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
+                        <span class="font-bold text-xs text-orange-400">FAQ #${index + 1}</span>
+                        <button onclick="removeFaqItem(${index})" class="text-slate-500 hover:text-red-400 p-1">
+                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Question</label>
+                        <input type="text" value="${f.q}" oninput="updateFaqProp(${index}, 'q', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Answer</label>
+                        <textarea rows="2" oninput="updateFaqProp(${index}, 'a', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${f.a}</textarea>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function updateFaqProp(index, prop, val) {
+            state.faqs[index][prop] = val;
+            saveState();
+        }
+
+        function addFaqItem() {
+            state.faqs.push({
+                q: "New Question Title?",
+                a: "Detailed explanation or response answer goes here."
+            });
+            saveState();
+            renderFaqList();
+        }
+
+        function removeFaqItem(index) {
+            state.faqs.splice(index, 1);
+            saveState();
+            renderFaqList();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.editor-tab').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            event.currentTarget.classList.add('active');
+        }
+
+        function setViewMode(mode) {
+            const sidebar = document.getElementById('editor-sidebar');
+            const previewWrapper = document.getElementById('preview-wrapper');
+            const codeWrapper = document.getElementById('code-wrapper');
+            const previewToolbar = document.getElementById('preview-toolbar');
+
+            document.getElementById('btn-mode-split').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+            document.getElementById('btn-mode-preview').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+            document.getElementById('btn-mode-code').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+
+            if (mode === 'split') {
+                sidebar.classList.remove('hidden');
+                sidebar.className = "w-full md:w-[480px] lg:w-[520px] bg-studio-card border-r border-studio-border flex flex-col h-full shrink-0 z-20";
+                previewWrapper.classList.remove('hidden');
+                previewToolbar.classList.remove('hidden');
+                codeWrapper.classList.add('hidden');
+                document.getElementById('btn-mode-split').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
+            } else if (mode === 'preview') {
+                sidebar.classList.add('hidden');
+                previewWrapper.classList.remove('hidden');
+                previewToolbar.classList.remove('hidden');
+                codeWrapper.classList.add('hidden');
+                document.getElementById('btn-mode-preview').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
+            } else if (mode === 'code') {
+                sidebar.classList.add('hidden');
+                previewWrapper.classList.add('hidden');
+                previewToolbar.classList.add('hidden');
+                codeWrapper.classList.remove('hidden');
+                document.getElementById('btn-mode-code').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
+            }
+        }
+
+        function setDevice(type) {
+            const container = document.getElementById('preview-viewport-container');
+            const indicator = document.getElementById('viewport-size-indicator');
+            
+            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('device-' + type).classList.add('active');
+
+            if (type === 'desktop') {
+                container.style.width = '100%';
+                container.style.height = '100%';
+                indicator.innerText = "100% Fluid Desktop";
+            } else if (type === 'tablet') {
+                container.style.width = '768px';
+                container.style.height = '100%';
+                indicator.innerText = "768px Tablet Frame";
+            } else if (type === 'mobile') {
+                container.style.width = '375px';
+                container.style.height = '667px';
+                indicator.innerText = "375px Mobile Frame";
+            }
+        }
+
+        function refreshIframe() {
+            renderIframePreview();
+            showToast("Preview reloaded");
+        }
+
+        function copySourceCode() {
+            const textarea = document.getElementById('source-code-area');
+            textarea.select();
+            document.execCommand('copy');
+            showToast("Source code copied to clipboard!");
+        }
+
+        function exportHTML() {
+            const html = generateStandaloneHTML();
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'servos-vending-website.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Exported servos-vending-website.html");
+        }
+
+        function openPublishModal() {
+            document.getElementById('publish-modal').classList.remove('hidden');
+            if(localStorage.getItem('gh_pat')) document.getElementById('gh-token').value = localStorage.getItem('gh_pat');
+            if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
+        }
+
+        function closePublishModal() {
+            document.getElementById('publish-modal').classList.add('hidden');
+        }
+
+        async function executeGitHubCommit() {
+            const token = document.getElementById('gh-token').value.trim();
+            const repo = document.getElementById('gh-repo').value.trim();
+            const branch = document.getElementById('gh-branch').value.trim() || 'main';
+            const path = document.getElementById('gh-path').value.trim() || 'index.html';
+            const message = document.getElementById('gh-commit').value.trim() || 'Update via Servos Studio';
+            const btn = document.getElementById('gh-submit-btn');
+
+            if (!token || !repo) {
+                showToast("Please enter both GitHub Token & Repo Name!");
+                return;
+            }
+
+            localStorage.setItem('gh_pat', token);
+            localStorage.setItem('gh_repo', repo);
+
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> <span>Publishing...</span>`;
+            lucide.createIcons();
+
+            try {
+                const fileUrl = `https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`;
+                let sha = null;
+                
+                const checkRes = await fetch(fileUrl, {
+                    headers: { 'Authorization': `token ${token}` }
+                });
+
+                if (checkRes.ok) {
+                    const fileData = await checkRes.json();
+                    sha = fileData.sha;
+                }
+
+                const htmlContent = generateStandaloneHTML();
+                const encoder = new TextEncoder();
+                const data = encoder.encode(htmlContent);
+                let binary = '';
+                for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
+                const base64Content = btoa(binary);
+
+                const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        content: base64Content,
+                        branch: branch,
+                        ...(sha && { sha: sha })
+                    })
+                });
+
+                if (putRes.ok) {
+                    showToast("Published successfully to GitHub! Netlify build triggered.");
+                    closePublishModal();
+                } else {
+                    const err = await putRes.json();
+                    showToast("GitHub Error: " + (err.message || "Failed to commit"));
+                }
+            } catch (err) {
+                showToast("Network error trying to commit to GitHub.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="git-commit" class="h-4 w-4"></i> <span>Commit & Deploy</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "toast-animate bg-studio-card border border-orange-500/40 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 pointer-events-auto";
+            toast.innerHTML = `<i data-lucide="info" class="h-4 w-4 text-orange-400 shrink-0"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.onload = function() {
+            loadSavedState();
+            populateFormInputs();
+            renderWhyUsList();
+            renderServicesList();
+            renderGalleryList();
+            renderFaqList();
+            renderIframePreview();
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
