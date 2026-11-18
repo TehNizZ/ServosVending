@@ -72,6 +72,9 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .group { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
 .group > h3 { font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.steps-list { margin: 0; padding-left: 18px; font-size: 12px; color: var(--muted); }
+.steps-list li + li { margin-top: 8px; }
+.steps-list b { color: var(--text); }
 .note { display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(59, 130, 246, .1); border: 1px solid rgba(59, 130, 246, .3); color: #bfdbfe; font-size: 12px; }
 
 /* Preview */
@@ -282,12 +285,20 @@ body[data-mode="code"] #code-pane { display: flex; }
         <div class="field"><label>Form headline</label><input type="text" data-key="formTitle"></div>
         <div class="field"><label>Form intro</label><input type="text" data-key="formSubtitle"></div>
         <div class="field">
-          <label>Form endpoint URL</label>
-          <input type="text" data-key="formspreeUrl" placeholder="https://formspree.io/f/xxxxxxxx">
-          <p class="hint">Use the form URL from your Formspree dashboard. An email address will not work here.</p>
+          <label for="gform-link">Google Form pre-filled link</label>
+          <textarea id="gform-link" rows="3" data-key="gFormLink" placeholder="https://docs.google.com/forms/d/e/.../viewform?usp=pp_url&amp;entry.123=name&amp;entry.456=email..."></textarea>
+          <p class="hint" id="gform-status"></p>
+        </div>
+        <div class="group">
+          <h3><svg class="ic"><use href="#a-info"/></svg>How to connect your Google Form</h3>
+          <ol class="steps-list">
+            <li>Create a form with <b>7 short-answer questions</b> (use a paragraph question for the last one). Do not use the built-in "Collect emails" setting, and leave sign-in and one-response limits off.</li>
+            <li>In Google Forms, open the three-dot menu and choose <b>Get pre-filled link</b>.</li>
+            <li>In each question, type the matching word: <b>name, email, phone, venue, type, interest, message</b>. Then click <b>Get link</b> and copy it.</li>
+            <li>Paste the link above. The status line should say all 7 fields are mapped.</li>
+          </ol>
         </div>
         <div class="field"><label>Submit button text</label><input type="text" data-key="formSubmitBtnText"></div>
-        <div class="note"><svg class="ic ic-lg"><use href="#a-info"/></svg><span>Prefer to stay on Netlify? Netlify Forms can collect submissions without Formspree, but it needs a small change to the form markup. Ask and we'll set it up.</span></div>
       </div>
 
     </div>
@@ -473,7 +484,7 @@ const DEFAULT_STATE = {
 
     formTitle: "Let's find the right spot",
     formSubtitle: "Tell us a bit about your venue and we'll reply within one business day.",
-    formspreeUrl: "https://formspree.io/f/YOUR_FORM_ID",
+    gFormLink: "",
     formSubmitBtnText: "Request my free trial"
 };
 
@@ -499,14 +510,14 @@ function loadState() {
     if (saved._copyVersion !== COPY_VERSION) {
         const adopt = window.confirm(
             'A fully rewritten set of website copy is available.\n\n' +
-            'OK = load the new copy (keeps your phone, email and form endpoint).\n' +
+            'OK = load the new copy (keeps your phone, email and form link).\n' +
             'Cancel = keep your current text.'
         );
         if (adopt) {
             state = clone(DEFAULT_STATE);
             if (saved.contactPhone) state.contactPhone = saved.contactPhone;
             if (saved.contactEmail) state.contactEmail = saved.contactEmail;
-            if (saved.formspreeUrl && !/YOUR_FORM_ID|@/.test(saved.formspreeUrl)) state.formspreeUrl = saved.formspreeUrl;
+            if (saved.gFormLink) state.gFormLink = saved.gFormLink;
         } else {
             state = Object.assign(clone(DEFAULT_STATE), saved);
         }
@@ -524,6 +535,7 @@ function persist() {
 let previewTimer = null;
 function saveState() {
     persist();
+    updateGFormStatus();
     $('#save-status-text').textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     clearTimeout(previewTimer);
     previewTimer = setTimeout(renderPreview, 250);
@@ -531,6 +543,28 @@ function saveState() {
 
         // Generates the complete public site as ONE self-contained HTML file.
         // No Tailwind, no web fonts, no icon library, no stock photos: CSS, icons and script are all inlined.
+        // Reads a Google Forms "pre-filled link" and works out the form's submit URL and
+        // which entry.NNN id belongs to which field on our request form.
+        // In the pre-filled copy, the answer typed into each question is its field word.
+        function parseGForm(link) {
+            const out = { action: '', entries: {}, found: [], missing: [] };
+            const fields = { name: 'full_name', email: 'email', phone: 'phone', venue: 'property_name', type: 'venue_type', interest: 'interested_in', message: 'message' };
+            link = (link || '').trim();
+            const m = link.match(/https:\/\/docs\.google\.com\/forms\/d\/e\/([\w-]+)/);
+            if (!m) { out.missing = Object.keys(fields); return out; }
+            out.action = 'https://docs.google.com/forms/d/e/' + m[1] + '/formResponse';
+            const re = /[?&](entry\.\d+)=([^&#]*)/g;
+            let x;
+            while ((x = re.exec(link))) {
+                let v = x[2].replace(/\+/g, ' ');
+                try { v = decodeURIComponent(v); } catch (e) {}
+                v = v.trim().toLowerCase();
+                if (fields[v] && !out.entries[fields[v]]) { out.entries[fields[v]] = x[1]; out.found.push(v); }
+            }
+            out.missing = Object.keys(fields).filter((k) => out.found.indexOf(k) < 0);
+            return out;
+        }
+
         function generateStandaloneHTML() {
             const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
             const ic = (name, cls) => `<svg class="ic ${cls || ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
@@ -632,6 +666,8 @@ function saveState() {
                 telephone: state.contactPhone, email: state.contactEmail
             }).replace(/</g, '\\u003c');
 
+            const gf = parseGForm(state.gFormLink);
+            const formCfg = JSON.stringify({ action: gf.action, entries: gf.entries, email: state.contactEmail, brand: state.brandName }).replace(/</g, '\\u003c');
             const metaDesc = 'Smart coolers, phone charging stations and trading card kiosks for Palm Beach County venues. We install and run everything at no cost to you.';
             const navLinks = '<a href="#why-us">Why Servos</a><a href="#services">Machines</a><a href="#venues">Venues</a><a href="#mixes">Stocking</a><a href="#revenue">Revenue Share</a><a href="#coverage">Areas</a><a href="#faq">FAQ</a>';
 
@@ -646,6 +682,9 @@ function saveState() {
     <meta property="og:description" content="${esc(metaDesc)}">
     <meta property="og:type" content="website">
     <meta name="theme-color" content="#0f1014">
+    <meta property="og:site_name" content="${name}">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c2410c'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
     <script>
         (function () {
             var d = document.documentElement;
@@ -659,8 +698,12 @@ function saveState() {
 :root {
   --orange: #ffbe55;
   --orange-dark: #ff773d;
-  --orange-text: #c2500f;
+  --orange-text: #b3440a;
   --grad: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%);
+  --btn-grad: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
+  --grad-text: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
+  --day: #b45309;
+  --night: #6d28d9;
 
   --bg: #f8fafc;
   --bg-alt: #f1f5f9;
@@ -683,12 +726,14 @@ function saveState() {
     --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
     --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
     --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+    --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
   --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
   --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+  --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -718,18 +763,18 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .section { padding: 64px 0; }
 .section.alt { background: var(--bg-alt); }
 .stack > * + * { margin-top: 14px; }
-.eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-text); }
 .section-head { max-width: 640px; margin: 0 auto 40px; text-align: center; }
 .section-head > * + * { margin-top: 8px; }
 h2 { font-size: 30px; font-weight: 900; line-height: 1.2; }
 h3 { font-weight: 800; }
 .lead { color: var(--muted); font-size: 16px; }
 .muted { color: var(--muted); }
-.grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.grad-text { background: var(--grad-text); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-weight: 800; padding: 12px 22px; transition: transform .15s; }
-.btn-primary { background: var(--grad); color: #fff; box-shadow: var(--shadow); }
+.btn-primary { background: var(--btn-grad); color: #fff; box-shadow: var(--shadow); }
 .btn-primary:hover { transform: scale(1.04); }
 .btn-ghost { background: var(--card); border: 1px solid var(--border); }
 .btn-lg { padding: 16px 30px; font-size: 16px; }
@@ -738,17 +783,17 @@ h3 { font-weight: 800; }
 
 /* Announcement bar */
 .announce { background: linear-gradient(90deg, #9333ea, #2563eb); color: #fff; font-weight: 700; font-size: 14px; padding: 10px 16px; text-align: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
-.pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 99px; font-size: 11px; text-transform: uppercase; font-weight: 800; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,.25); padding: 2px 10px; border-radius: 99px; font-size: 11px; text-transform: uppercase; font-weight: 800; }
 
 /* Header */
 .site-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
 .header-row { display: flex; align-items: center; justify-content: space-between; height: 80px; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
 .brand-name { display: block; font-weight: 900; font-size: 18px; letter-spacing: .04em; line-height: 1; }
 .brand-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .nav { display: none; gap: 24px; font-size: 14px; font-weight: 600; }
-.nav a:hover { color: var(--orange-dark); }
+.nav a:hover { color: var(--orange-text); }
 .header-actions { display: flex; align-items: center; gap: 10px; }
 .icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; }
 .icon-btn:hover { background: var(--chip); }
@@ -785,12 +830,12 @@ h3 { font-weight: 800; }
 .card h3 { font-size: 18px; }
 .card p { font-size: 14px; color: var(--muted); }
 .icon-tile { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 119, 61, .12); color: var(--orange-dark); display: grid; place-items: center; }
-.num { width: 32px; height: 32px; border-radius: 10px; background: var(--grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
+.num { width: 32px; height: 32px; border-radius: 10px; background: var(--btn-grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
 
 /* Services */
 .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
 .tab { padding: 9px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--card); border: 1px solid var(--border); }
-.tab[aria-selected="true"] { background: #f97316; border-color: #f97316; color: #fff; box-shadow: var(--shadow); }
+.tab[aria-selected="true"] { background: #b8400a; border-color: #b8400a; color: #fff; box-shadow: var(--shadow); }
 .svc-list { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
 .js .svc-list .svc { display: none; }
 .js .svc-list .svc.active { display: block; }
@@ -806,7 +851,7 @@ h3 { font-weight: 800; }
 .svc p { font-size: 14px; color: var(--muted); }
 .ticks li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 600; margin-top: 8px; }
 .ticks .ic { color: var(--green); margin-top: 3px; }
-.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
+.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
 .media .ic { width: 96px; height: 96px; stroke-width: 1.4; opacity: .95; }
 .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .media-cap { position: absolute; left: 14px; bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
@@ -821,11 +866,11 @@ h3 { font-weight: 800; }
 .deck-nav { display: none; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
 .js .deck-nav { display: flex; }
 .round { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; }
-.round:hover { background: #f97316; color: #fff; border-color: #f97316; }
+.round:hover { background: #b8400a; color: #fff; border-color: #b8400a; }
 .deck-count { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--muted); }
 
 /* Venue cards */
-.venue .top { height: 150px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; }
+.venue .top { height: 150px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; }
 .venue .top .ic { width: 56px; height: 56px; stroke-width: 1.5; }
 .venue .tag { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, .75); color: var(--orange); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
 .venue { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -839,14 +884,14 @@ h3 { font-weight: 800; }
 .mix > * + * { margin-top: 16px; }
 .mix-head { display: flex; justify-content: space-between; align-items: center; }
 .mix h3 { font-size: 24px; font-weight: 900; }
-.mix.day h3, .mix.day .ic-lg { color: #f59e0b; }
-.mix.night h3, .mix.night .ic-lg { color: #a78bfa; }
+.mix.day h3, .mix.day .ic-lg { color: var(--day); }
+.mix.night h3, .mix.night .ic-lg { color: var(--night); }
 .mix p { font-size: 14px; color: var(--muted); }
 .mix-items { display: grid; gap: 8px; }
 @media (min-width: 640px) { .mix-items { grid-template-columns: 1fr 1fr; } }
 .mix-items li { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600; }
-.mix.day .mix-items .ic { color: #f59e0b; }
-.mix.night .mix-items .ic { color: #a78bfa; }
+.mix.day .mix-items .ic { color: var(--day); }
+.mix.night .mix-items .ic { color: var(--night); }
 
 /* Cities */
 .cities { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
@@ -871,6 +916,31 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
 .faq summary .ic { transition: transform .25s; }
 .faq[open] summary .ic { transform: rotate(180deg); }
 .faq p { padding: 0 0 18px; font-size: 14px; color: var(--muted); }
+
+/* How it works */
+.steps { display: grid; gap: 24px; counter-reset: step; }
+@media (min-width: 768px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+.step { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.step .num { width: 44px; height: 44px; border-radius: 50%; font-size: 18px; }
+.step h3 { font-size: 18px; }
+.step p { font-size: 14px; color: var(--muted); max-width: 300px; }
+
+/* Form states */
+.form-ok { text-align: center; padding: 24px 8px; }
+.form-ok > * + * { margin-top: 10px; }
+.form-ok h3 { font-size: 22px; }
+.form-ok p { color: var(--muted); }
+.form-err { color: #b91c1c; font-size: 14px; font-weight: 600; text-align: center; }
+:root[data-theme="dark"] .form-err { color: #fca5a5; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .form-err { color: #fca5a5; } }
+
+/* Mobile call bar */
+.callbar { display: none; }
+@media (max-width: 639px) {
+  .callbar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--border); }
+  .callbar .btn { padding: 13px 10px; font-size: 15px; }
+  body { padding-bottom: 76px; }
+}
 
 /* Footer */
 .site-footer { background: #020617; color: #94a3b8; text-align: center; padding: 40px 20px; font-size: 14px; border-top: 1px solid #1e293b; }
@@ -959,6 +1029,16 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
         </div>
     </section>
 
+    <section id="how" class="section" style="padding-top:0" aria-label="How it works">
+        <div class="wrap-md">
+            <div class="steps">
+                <div class="step"><span class="num">1</span><h3>Tell us about your space</h3><p>Send a quick request. We will visit and suggest the right machine and spot.</p></div>
+                <div class="step"><span class="num">2</span><h3>We install within a week</h3><p>Delivery, setup, testing and stocking are all handled by our local team.</p></div>
+                <div class="step"><span class="num">3</span><h3>Try it free for 30 days</h3><p>Keep it if it works for you. Once it passes $1,000 a month, you earn 10%.</p></div>
+            </div>
+        </div>
+    </section>
+
     <section id="why-us" class="section alt">
         <div class="wrap">
             <div class="section-head">
@@ -1043,8 +1123,7 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
                     <h2>${esc(state.formTitle)}</h2>
                     <p class="muted" style="font-size:14px">${esc(state.formSubtitle)}</p>
                 </div>
-                <form action="${esc(state.formspreeUrl)}" method="POST" class="stack">
-                    <input type="hidden" name="_subject" value="New ${name} placement request">
+                <form action="mailto:${esc(state.contactEmail)}" method="post" enctype="text/plain" class="stack">
                     <div class="honey" aria-hidden="true"><input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></div>
                     <div class="fields">
                         <div><label for="f-name">Your name *</label><input id="f-name" type="text" name="full_name" autocomplete="name" required></div>
@@ -1083,6 +1162,11 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
     <p>&copy; ${new Date().getFullYear()} ${name}. All rights reserved.</p>
     <p><a href="tel:${phoneDigits}">${esc(state.contactPhone)}</a> | <a href="mailto:${esc(state.contactEmail)}">${esc(state.contactEmail)}</a></p>
 </footer>
+
+<div class="callbar">
+    <a href="tel:${phoneDigits}" class="btn btn-ghost">${ic('phone')}<span>Call us</span></a>
+    <a href="#builder" class="btn btn-primary">Start free trial</a>
+</div>
 
 <script>
 (function () {
@@ -1131,6 +1215,53 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
     syncIcon();
 })();
 <\/script>
+<script>
+(function () {
+    var CFG = ${formCfg};
+    var form = document.querySelector('#builder form');
+    if (!form || !window.fetch) return;
+    var btn = form.querySelector('button[type="submit"]');
+    var names = ['full_name', 'email', 'phone', 'property_name', 'venue_type', 'interested_in', 'message'];
+    var labels = { full_name: 'Name', email: 'Email', phone: 'Phone', property_name: 'Venue', venue_type: 'Type of place', interested_in: 'Interested in', message: 'Notes' };
+    function val(n) { var el = form.elements[n]; return el ? String(el.value || '').trim() : ''; }
+    function showThanks() {
+        var ok = document.createElement('div');
+        ok.className = 'form-ok';
+        ok.setAttribute('role', 'status');
+        ok.setAttribute('tabindex', '-1');
+        ok.innerHTML = '<h3>Thank you. Your request is in.</h3><p>We will reach out within one business day to talk about your space.</p>';
+        form.replaceWith(ok);
+        ok.focus();
+    }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var old = form.querySelector('.form-err');
+        if (old) old.remove();
+        if (val('_gotcha')) { showThanks(); return; }
+        if (!CFG.action) {
+            var parts = names.map(function (n) { return encodeURIComponent(labels[n] + ': ' + val(n)); });
+            window.location.href = 'mailto:' + CFG.email + '?subject=' + encodeURIComponent('New placement request') + '&body=' + parts.join('%0A');
+            return;
+        }
+        var label = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
+        var body = new URLSearchParams();
+        names.forEach(function (n) { if (CFG.entries[n]) body.append(CFG.entries[n], val(n)); });
+        fetch(CFG.action, { method: 'POST', mode: 'no-cors', body: body })
+            .then(showThanks)
+            .catch(function () {
+                btn.disabled = false;
+                btn.textContent = label;
+                var err = document.createElement('p');
+                err.className = 'form-err';
+                err.setAttribute('role', 'alert');
+                err.textContent = 'Something went wrong. Please try again, or call us directly.';
+                form.insertBefore(err, btn);
+            });
+    });
+})();
+<\/script>
 </body>
 </html>`;
         }
@@ -1152,9 +1283,25 @@ function renderPreview() {
 /* ------------------------------------------------------------------
    EDITOR FORMS
 ------------------------------------------------------------------- */
+function updateGFormStatus() {
+    const el = $('#gform-status');
+    if (!el) return;
+    const g = parseGForm(state.gFormLink);
+    if (!state.gFormLink || !state.gFormLink.trim()) {
+        el.textContent = 'Not connected yet. Until you connect a Google Form, the request form opens the visitor\'s email app addressed to you.';
+    } else if (!g.action) {
+        el.textContent = 'That does not look like a Google Forms pre-filled link. It should start with https://docs.google.com/forms/d/e/';
+    } else if (g.missing.length) {
+        el.textContent = 'Connected, but these answers were not found in the link: ' + g.missing.join(', ') + '. Those fields will not reach your form.';
+    } else {
+        el.textContent = 'Connected. All 7 fields are mapped to your Google Form.';
+    }
+}
+
 function populateSimpleFields() {
     $$('[data-key]').forEach((el) => { el.value = state[el.dataset.key] == null ? '' : state[el.dataset.key]; });
     $$('[data-csv]').forEach((el) => { el.value = (state[el.dataset.csv] || []).join(', '); });
+    updateGFormStatus();
 }
 
 function field(label, control) { return '<div class="field"><label>' + label + '</label>' + control + '</div>'; }
