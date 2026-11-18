@@ -1,1743 +1,1421 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Servos Vending Studio & Visual Site Editor</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Servos Studio</title>
+<style>
+:root {
+  --bg: #0b0f17; --panel: #131924; --panel-2: #0f141d; --border: #212b3b; --border-2: #2e3b50;
+  --text: #e2e8f0; --muted: #8fa0b8; --accent: #3b82f6; --accent-2: #2563eb; --orange: #ff773d; --green: #10b981; --red: #f87171;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; display: flex; flex-direction: column; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; line-height: 1.45; }
+h1, h2, h3, p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.ic-lg { width: 18px; height: 18px; }
 
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        heading: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        studio: {
-                            bg: '#0B0F17',
-                            card: '#131924',
-                            border: '#212B3B',
-                            accent: '#3B82F6',
-                            orange: '#FF773D',
-                            emerald: '#10B981'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+/* Top bar */
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ffbe55, #ff773d); color: #fff; font-weight: 900; display: grid; place-items: center; }
+.logo h1 { font-size: 15px; font-weight: 800; letter-spacing: .06em; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); margin-top: 2px; }
+.status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.seg { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; }
+.seg button { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font-weight: 700; font-size: 12px; }
+.seg button:hover { color: #fff; }
+.seg button.active { background: var(--accent-2); color: #fff; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border-2); background: var(--panel-2); font-weight: 700; font-size: 12px; }
+.btn:hover { background: #1b2433; }
+.btn.primary { background: linear-gradient(135deg, #10b981, #0d9488); border-color: transparent; color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: .6; cursor: wait; }
+.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border-2); background: var(--panel-2); }
+.icon-btn:hover { background: #1b2433; }
+.icon-btn.danger { width: 28px; height: 28px; color: var(--red); border-color: transparent; background: transparent; }
+.icon-btn.danger:hover { background: rgba(248, 113, 113, .12); }
 
-    <style>
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0B0F17; }
-        ::-webkit-scrollbar-thumb { background: #212B3B; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #FF773D; }
+/* Workspace */
+.workspace { flex: 1; display: flex; min-height: 0; }
+#editor-sidebar { width: 500px; max-width: 100%; flex-shrink: 0; display: flex; flex-direction: column; background: var(--panel); border-right: 1px solid var(--border); min-height: 0; }
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+.editor-tab { display: flex; align-items: center; gap: 6px; white-space: nowrap; padding: 7px 11px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--muted); font-weight: 700; font-size: 12px; }
+.editor-tab:hover { color: #fff; background: #1b2433; }
+.editor-tab.active { background: rgba(59, 130, 246, .15); border-color: rgba(59, 130, 246, .4); color: #93c5fd; }
+.panels { flex: 1; overflow-y: auto; padding: 18px 16px 40px; }
+.tab-content > * + * { margin-top: 16px; }
+.panel-title { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.panel-title h2 { font-size: 15px; font-weight: 800; }
+.panel-title p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.field > label { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 700; letter-spacing: .03em; color: var(--muted); }
+.field + .field, .row2 + .field, .field + .row2 { margin-top: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+input[type="text"], input[type="email"], input[type="password"], textarea {
+  width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 9px 11px; font-size: 13px;
+}
+textarea { resize: vertical; min-height: 60px; }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+.item { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.item + .item { margin-top: 12px; }
+.item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.item-head span { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--orange); }
+.group { background: var(--panel-2); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+.group > h3 { font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.note { display: flex; gap: 8px; padding: 10px 12px; border-radius: 10px; background: rgba(59, 130, 246, .1); border: 1px solid rgba(59, 130, 246, .3); color: #bfdbfe; font-size: 12px; }
 
-        .editor-tab.active {
-            border-color: #FF773D;
-            color: #FF773D;
-            background-color: rgba(255, 119, 61, 0.08);
-        }
+/* Preview */
+.pane { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 14px; background: var(--panel); border-bottom: 1px solid var(--border); }
+.toolbar .seg button { padding: 6px 9px; }
+.toolbar .right { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 12px; }
+.toolbar .right button { background: none; border: 0; color: var(--muted); display: flex; gap: 6px; align-items: center; font-weight: 700; }
+.toolbar .right button:hover { color: #fff; }
+#preview-wrapper { flex: 1; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 16px; background: #070a10; }
+#preview-viewport { width: 100%; height: 100%; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); transition: width .25s ease; }
+#preview-viewport[data-device="tablet"] { width: 768px; max-width: 100%; }
+#preview-viewport[data-device="phone"] { width: 375px; max-width: 100%; height: min(667px, 100%); }
+#live-iframe { width: 100%; height: 100%; border: 0; display: block; background: #fff; }
 
-        .device-btn.active {
-            background-color: #3B82F6;
-            color: #FFFFFF;
-        }
+/* Source view */
+#code-pane { display: none; }
+#code-pane .toolbar span { font-weight: 700; font-size: 12px; color: var(--muted); }
+#source-code-area { flex: 1; width: 100%; resize: none; border: 0; border-radius: 0; background: #070a10; color: #a5f3c4; font-family: var(--mono); font-size: 12px; padding: 16px; }
 
-        .glass-panel {
-            background: rgba(19, 25, 36, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(33, 43, 59, 0.8);
-        }
+body[data-mode="preview"] #editor-sidebar { display: none; }
+body[data-mode="code"] #editor-sidebar, body[data-mode="code"] #preview-pane { display: none; }
+body[data-mode="code"] #code-pane { display: flex; }
 
-        #preview-viewport-container {
-            transition: width 0.3s ease, height 0.3s ease;
-        }
+/* Modal */
+.modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0, 0, 0, .65); }
+.dialog { width: 100%; max-width: 480px; max-height: 92vh; overflow: auto; background: var(--panel); border: 1px solid var(--border-2); border-radius: 18px; padding: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); }
+.dialog > * + * { margin-top: 14px; }
+.dialog-head { display: flex; justify-content: space-between; align-items: center; }
+.dialog-head h2 { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.check input { width: auto; }
+.dialog-actions { display: flex; gap: 10px; }
+.dialog-actions .btn { flex: 1; padding: 11px; }
 
-        @keyframes slideIn {
-            from { transform: translateY(100%); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .toast-animate {
-            animation: slideIn 0.3s ease forwards;
-        }
-    </style>
+.toasts { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: grid; gap: 8px; pointer-events: none; }
+.toast { background: var(--panel); border: 1px solid rgba(255, 119, 61, .45); border-radius: 12px; padding: 10px 14px; font-size: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); transition: opacity .3s; animation: rise .25s ease; }
+@keyframes rise { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (max-width: 900px) {
+  .workspace { flex-direction: column; }
+  #editor-sidebar { width: 100%; max-height: 55%; border-right: 0; border-bottom: 1px solid var(--border); }
+  .seg button span { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
 </head>
-<body class="bg-studio-bg text-slate-200 font-sans h-full flex flex-col overflow-hidden selection:bg-orange-500 selection:text-white">
+<body data-mode="split">
 
-    <header class="h-16 bg-studio-card/90 border-b border-studio-border px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
-        <!-- Logo & Title -->
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center font-heading font-black text-white text-lg shadow-lg shadow-orange-500/20">
-                S
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="font-heading font-extrabold text-base tracking-wide text-white">SERVOS STUDIO</h1>
-                    <span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase">Live Editor v2.6</span>
-                </div>
-                <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span id="save-status-text">Auto-Saved to LocalStorage</span>
-                </p>
-            </div>
-        </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="a-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+<symbol id="a-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="a-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></symbol>
+<symbol id="a-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
+<symbol id="a-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+<symbol id="a-percent" viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
+<symbol id="a-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="a-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+<symbol id="a-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+<symbol id="a-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="a-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+<symbol id="a-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></symbol>
+<symbol id="a-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+<symbol id="a-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+<symbol id="a-columns" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></symbol>
+<symbol id="a-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="a-code" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></symbol>
+<symbol id="a-monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+<symbol id="a-tablet" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+<symbol id="a-phone" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+<symbol id="a-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
+<symbol id="a-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="a-github" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></symbol>
+<symbol id="a-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+<symbol id="a-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+</defs>
+</svg>
 
-        <!-- View Mode Switches -->
-        <div class="hidden md:flex items-center bg-studio-bg border border-studio-border rounded-xl p-1 gap-1">
-            <button onclick="setViewMode('split')" id="btn-mode-split" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm">
-                <i data-lucide="columns" class="h-3.5 w-3.5"></i>
-                <span>Split View</span>
-            </button>
-            <button onclick="setViewMode('preview')" id="btn-mode-preview" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
-                <i data-lucide="eye" class="h-3.5 w-3.5"></i>
-                <span>Full Preview</span>
-            </button>
-            <button onclick="setViewMode('code')" id="btn-mode-code" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
-                <i data-lucide="code" class="h-3.5 w-3.5"></i>
-                <span>HTML Source</span>
-            </button>
-        </div>
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-mark">S</div>
+    <div>
+      <h1>SERVOS STUDIO</h1>
+      <p class="status"><span id="save-status-text">Edits save automatically in this browser</span></p>
+    </div>
+  </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-2 sm:gap-3">
-            <button onclick="openPublishModal()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5 transition-all">
-                <i data-lucide="globe" class="h-4 w-4"></i>
-                <span class="hidden sm:inline">Publish Live</span>
-            </button>
+  <div class="seg" role="group" aria-label="View mode">
+    <button type="button" class="active" data-action="mode" data-mode="split"><svg class="ic"><use href="#a-columns"/></svg><span>Split</span></button>
+    <button type="button" data-action="mode" data-mode="preview"><svg class="ic"><use href="#a-eye"/></svg><span>Preview</span></button>
+    <button type="button" data-action="mode" data-mode="code"><svg class="ic"><use href="#a-code"/></svg><span>Source</span></button>
+  </div>
 
-            <button onclick="exportHTML()" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-md flex items-center gap-1.5 transition-all">
-                <i data-lucide="download" class="h-4 w-4"></i>
-                <span class="hidden sm:inline">Export HTML</span>
-            </button>
+  <div class="actions">
+    <button type="button" class="btn primary" data-action="open-publish"><svg class="ic"><use href="#a-globe"/></svg>Publish</button>
+    <button type="button" class="btn" data-action="export"><svg class="ic"><use href="#a-download"/></svg>Export</button>
+    <button type="button" class="icon-btn" data-action="reset" title="Reset to defaults" aria-label="Reset to defaults"><svg class="ic"><use href="#a-reset"/></svg></button>
+  </div>
+</header>
 
-            <button onclick="resetDefaultState()" title="Reset to Original Defaults" class="p-2 text-slate-400 hover:text-red-400 hover:bg-studio-border/50 rounded-xl transition-colors">
-                <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
-            </button>
-        </div>
-    </header>
+<div class="workspace">
 
-    <div class="flex-grow flex overflow-hidden relative">
-
-        <!-- LEFT PANEL: CMS Visual Controls -->
-        <aside id="editor-sidebar" class="w-full md:w-[480px] lg:w-[520px] bg-studio-card border-r border-studio-border flex flex-col h-full shrink-0 z-20 transition-all duration-300">
-            
-            <!-- Navigation Tabs for Site Sections -->
-            <div class="flex border-b border-studio-border overflow-x-auto text-xs font-bold bg-studio-bg/60 p-2 gap-1 shrink-0 scrollbar-none">
-                <button onclick="switchTab('tab-hero')" class="editor-tab active px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="layout-template" class="h-3.5 w-3.5"></i> Hero & Brand
-                </button>
-                <button onclick="switchTab('tab-why')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="shield-check" class="h-3.5 w-3.5"></i> Why Us
-                </button>
-                <button onclick="switchTab('tab-services')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="layers" class="h-3.5 w-3.5"></i> Flipbook Services
-                </button>
-                <button onclick="switchTab('tab-gallery')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="image" class="h-3.5 w-3.5"></i> Gallery
-                </button>
-                <button onclick="switchTab('tab-mixes')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="sun-moon" class="h-3.5 w-3.5"></i> Product Mixes
-                </button>
-                <button onclick="switchTab('tab-revenue')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="percent" class="h-3.5 w-3.5"></i> Revenue Split
-                </button>
-                <button onclick="switchTab('tab-coverage')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="map-pin" class="h-3.5 w-3.5"></i> Service Area
-                </button>
-                <button onclick="switchTab('tab-faq')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="help-circle" class="h-3.5 w-3.5"></i> FAQ
-                </button>
-                <button onclick="switchTab('tab-leads')" class="editor-tab px-3 py-2 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-colors">
-                    <i data-lucide="send" class="h-3.5 w-3.5"></i> Leads
-                </button>
-            </div>
-
-            <div class="flex-grow overflow-y-auto p-5 space-y-6">
-
-                <!-- HERO TAB -->
-                <div id="tab-hero" class="tab-content space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Hero & Header Branding</h3>
-                        <span class="text-[10px] text-slate-500">Main Banner Settings</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Top Promo Announcement Bar Text</label>
-                            <input type="text" id="cfg-promoText" oninput="updateField('promoText', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Brand Name</label>
-                            <input type="text" id="cfg-brandName" oninput="updateField('brandName', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Location Tagline</label>
-                            <input type="text" id="cfg-brandTagline" oninput="updateField('brandTagline', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Main Title Line 1</label>
-                            <input type="text" id="cfg-heroTitle1" oninput="updateField('heroTitle1', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Title Line 2 (Highlighted Gradient)</label>
-                            <input type="text" id="cfg-heroTitle2" oninput="updateField('heroTitle2', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Hero Subtitle Paragraph</label>
-                            <textarea id="cfg-heroSubtitle" rows="3" oninput="updateField('heroSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1">Primary CTA Button</label>
-                                <input type="text" id="cfg-heroCtaPrimary" oninput="updateField('heroCtaPrimary', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-300 mb-1">Contact Phone</label>
-                                <input type="text" id="cfg-contactPhone" oninput="updateField('contactPhone', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Contact Email Address</label>
-                            <input type="email" id="cfg-contactEmail" oninput="updateField('contactEmail', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- WHY US TAB -->
-                <div id="tab-why" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Why Choose Us Section</h3>
-                        <span class="text-[10px] text-slate-500">Value Proposition Highlights</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Main Headline</label>
-                            <input type="text" id="cfg-whyUsTitle" oninput="updateField('whyUsTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Subtitle</label>
-                            <textarea id="cfg-whyUsSubtitle" rows="2" oninput="updateField('whyUsSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-orange-500"></textarea>
-                        </div>
-
-                        <div id="whyus-list-container" class="space-y-3 pt-2">
-                            <!-- Dynamic Why Us Cards Inserted via JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SERVICES SHOWCASE FLIPBOOK TAB -->
-                <div id="tab-services" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <div>
-                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Interactive Flipbook Services</h3>
-                            <p class="text-[11px] text-slate-500">3D Card Deck & Equipment Showcase</p>
-                        </div>
-                        <button onclick="addServiceItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Card
-                        </button>
-                    </div>
-
-                    <div id="services-list-container" class="space-y-4">
-                        <!-- Dynamic Service Items Inserted Here via JS -->
-                    </div>
-                </div>
-
-                <!-- GALLERY TAB -->
-                <div id="tab-gallery" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <div>
-                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Placements & Venue Gallery</h3>
-                            <p class="text-[11px] text-slate-500">Showcase installed equipment across Palm Beach</p>
-                        </div>
-                        <button onclick="addGalleryItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Photo
-                        </button>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Gallery Section Title</label>
-                            <input type="text" id="cfg-galleryTitle" oninput="updateField('galleryTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Gallery Subtitle</label>
-                            <textarea id="cfg-gallerySubtitle" rows="2" oninput="updateField('gallerySubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-
-                        <div id="gallery-list-container" class="space-y-4">
-                            <!-- Dynamic Gallery Cards Inserted via JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PRODUCT MIXES TAB -->
-                <div id="tab-mixes" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Day & Night Curation Mixes</h3>
-                        <span class="text-[10px] text-slate-500">Product Lineup Customization</span>
-                    </div>
-
-                    <!-- Daytime Mix Config -->
-                    <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
-                        <div class="flex items-center gap-2 text-amber-400 font-bold text-xs">
-                            <i data-lucide="sun" class="h-4 w-4"></i> Daytime Mix
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Mix Title</label>
-                            <input type="text" id="cfg-dayMixTitle" oninput="updateField('dayMixTitle', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Description</label>
-                            <textarea id="cfg-dayMixDesc" rows="2" oninput="updateField('dayMixDesc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Featured Items (comma separated)</label>
-                            <input type="text" id="cfg-dayMixItems" oninput="updateMixItems('day', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Nighttime Mix Config -->
-                    <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
-                        <div class="flex items-center gap-2 text-purple-400 font-bold text-xs">
-                            <i data-lucide="moon" class="h-4 w-4"></i> Nighttime Mix
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Mix Title</label>
-                            <input type="text" id="cfg-nightMixTitle" oninput="updateField('nightMixTitle', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Description</label>
-                            <textarea id="cfg-nightMixDesc" rows="2" oninput="updateField('nightMixDesc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-400 mb-1">Featured Items (comma separated)</label>
-                            <input type="text" id="cfg-nightMixItems" oninput="updateMixItems('night', this.value)" class="w-full bg-studio-card border border-studio-border rounded-xl p-2 text-xs text-white focus:outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- REVENUE SPLIT TAB -->
-                <div id="tab-revenue" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Revenue Split Model</h3>
-                        <span class="text-[10px] text-slate-500">Financial Terms</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Main Heading</label>
-                            <input type="text" id="cfg-revTitle" oninput="updateField('revTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Section Subtitle</label>
-                            <textarea id="cfg-revSubtitle" rows="2" oninput="updateField('revSubtitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 1: Trial Period Text</label>
-                            <textarea id="cfg-revStep1" rows="2" oninput="updateField('revStep1', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 2: 10% Revenue Share Rule Text</label>
-                            <textarea id="cfg-revStep2" rows="2" oninput="updateField('revStep2', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Pillar 3: Under Threshold / Rental Option Text</label>
-                            <textarea id="cfg-revStep3" rows="2" oninput="updateField('revStep3', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- COVERAGE AREA TAB -->
-                <div id="tab-coverage" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Coverage & Cities</h3>
-                        <span class="text-[10px] text-slate-500">Service Radius</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Service Area Headline</label>
-                            <input type="text" id="cfg-coverageTitle" oninput="updateField('coverageTitle', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Service Area Subtext</label>
-                            <textarea id="cfg-coverageDesc" rows="2" oninput="updateField('coverageDesc', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Served Cities (Comma Separated Tags)</label>
-                            <textarea id="cfg-citiesList" rows="3" oninput="updateCitiesList(this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- FAQ TAB -->
-                <div id="tab-faq" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <div>
-                            <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">FAQ Accordion Items</h3>
-                            <p class="text-[11px] text-slate-500">Add or edit customer questions</p>
-                        </div>
-                        <button onclick="addFaqItem()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold flex items-center gap-1">
-                            <i data-lucide="plus" class="h-3.5 w-3.5"></i> Add Question
-                        </button>
-                    </div>
-
-                    <div id="faq-list-container" class="space-y-4">
-                        <!-- Dynamic FAQ Items Inserted Here -->
-                    </div>
-                </div>
-
-                <!-- LEADS TAB -->
-                <div id="tab-leads" class="tab-content hidden space-y-5">
-                    <div class="flex items-center justify-between pb-2 border-b border-studio-border">
-                        <h3 class="font-heading font-extrabold text-sm uppercase tracking-wider text-orange-400">Form Lead Settings</h3>
-                        <span class="text-[10px] text-slate-500">Destination Endpoint</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Form Lead Destination Email / Formspree URL</label>
-                            <input type="text" id="cfg-formspreeUrl" oninput="updateField('formspreeUrl', this.value)" placeholder="https://formspree.io/f/rileyc@servosvending.com" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                            <p class="text-[11px] text-slate-500 mt-1">Paste your Formspree endpoint URL or custom API POST endpoint.</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">Submit Button Text</label>
-                            <input type="text" id="cfg-formSubmitBtnText" oninput="updateField('formSubmitBtnText', this.value)" class="w-full bg-studio-bg border border-studio-border rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                        </div>
-
-                        <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs leading-relaxed">
-                            <i data-lucide="info" class="h-4 w-4 inline mr-1"></i>
-                            <strong>Netlify Native Forms Note:</strong> When hosting on Netlify, form submissions automatically capture inside Netlify Forms tab if hosted on their service.
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </aside>
-
-        <!-- RIGHT PANEL: Interactive Preview & Code Output -->
-        <main class="flex-grow flex flex-col bg-[#07090E] relative overflow-hidden">
-            
-            <!-- Device & View Toolbar -->
-            <div id="preview-toolbar" class="h-12 bg-studio-card/80 border-b border-studio-border px-4 flex items-center justify-between shrink-0 z-10">
-                
-                <!-- Viewport Switcher -->
-                <div class="flex items-center gap-1 bg-studio-bg border border-studio-border rounded-lg p-0.5">
-                    <button onclick="setDevice('desktop')" id="device-desktop" class="device-btn active p-1.5 rounded text-xs font-bold transition-all" title="Desktop View (100%)">
-                        <i data-lucide="monitor" class="h-4 w-4"></i>
-                    </button>
-                    <button onclick="setDevice('tablet')" id="device-tablet" class="device-btn p-1.5 rounded text-xs font-bold text-slate-400 hover:text-white transition-all" title="Tablet View (768px)">
-                        <i data-lucide="tablet" class="h-4 w-4"></i>
-                    </button>
-                    <button onclick="setDevice('mobile')" id="device-mobile" class="device-btn p-1.5 rounded text-xs font-bold text-slate-400 hover:text-white transition-all" title="Mobile View (375px)">
-                        <i data-lucide="smartphone" class="h-4 w-4"></i>
-                    </button>
-                </div>
-
-                <!-- Live Indicators -->
-                <div class="flex items-center gap-3">
-                    <button onclick="refreshIframe()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-bold transition-colors">
-                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i> Reload Preview
-                    </button>
-
-                    <div class="text-[11px] font-mono text-slate-500 hidden sm:block">
-                        <span id="viewport-size-indicator">100% Fluid Width</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- PREVIEW CONTAINER -->
-            <div id="preview-wrapper" class="flex-grow p-2 sm:p-6 flex items-center justify-center overflow-auto relative">
-                <div id="preview-viewport-container" class="w-full h-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-studio-border/50 relative">
-                    <!-- Updated iframe pointing to root landing page -->
-        <iframe 
-            id="live-iframe" 
-            src="../index.html" 
-            class="w-full h-full border-none" 
-            title="Live Site Preview">
-        </iframe>
-                </div>
-            </div>
-
-            <!-- SOURCE CODE CONTAINER -->
-            <div id="code-wrapper" class="hidden flex-grow p-6 flex flex-col relative overflow-hidden bg-studio-bg">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="text-xs font-bold text-slate-400 font-mono">Standalone index.html Output</span>
-                    <button onclick="copySourceCode()" class="bg-studio-card hover:bg-studio-border text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors border border-studio-border">
-                        <i data-lucide="copy" class="h-3.5 w-3.5"></i> Copy Source Code
-                    </button>
-                </div>
-                <textarea id="source-code-area" readonly class="flex-grow bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-studio-border focus:outline-none resize-none leading-relaxed"></textarea>
-            </div>
-        </main>
+  <aside id="editor-sidebar">
+    <div class="tabs" role="tablist" aria-label="Site sections">
+      <button type="button" class="editor-tab active" role="tab" aria-selected="true" data-action="tab" data-tab="tab-hero"><svg class="ic"><use href="#a-layout"/></svg>Hero</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-why"><svg class="ic"><use href="#a-shield"/></svg>Why us</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-services"><svg class="ic"><use href="#a-layers"/></svg>Machines</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-gallery"><svg class="ic"><use href="#a-image"/></svg>Venues</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-mixes"><svg class="ic"><use href="#a-sun"/></svg>Mixes</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-revenue"><svg class="ic"><use href="#a-percent"/></svg>Revenue</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-coverage"><svg class="ic"><use href="#a-pin"/></svg>Areas</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-faq"><svg class="ic"><use href="#a-help"/></svg>FAQ</button>
+      <button type="button" class="editor-tab" role="tab" aria-selected="false" data-action="tab" data-tab="tab-leads"><svg class="ic"><use href="#a-send"/></svg>Form</button>
     </div>
 
-    <!-- PUBLISH TO GITHUB MODAL -->
-    <div id="publish-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-studio-card border border-studio-border rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5 text-left">
-            <div class="flex justify-between items-center border-b border-studio-border pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                        <i data-lucide="github" class="h-5 w-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-heading font-extrabold text-base text-white">Publish Live to GitHub / Netlify</h3>
-                        <p class="text-[11px] text-slate-400">Direct repository commit integration</p>
-                    </div>
-                </div>
-                <button onclick="closePublishModal()" class="text-slate-400 hover:text-white p-1">
-                    <i data-lucide="x" class="h-5 w-5"></i>
-                </button>
-            </div>
+    <div class="panels">
 
-            <div class="space-y-4 text-xs">
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">GitHub Personal Access Token (PAT) *</label>
-                    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">Repo Name (owner/repo) *</label>
-                        <input type="text" id="gh-repo" placeholder="username/servos-site" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-300 mb-1">Branch Name</label>
-                        <input type="text" id="gh-branch" value="main" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Target File Path</label>
-                    <input type="text" id="gh-path" value="index.html" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <div>
-                    <label class="block font-bold text-slate-300 mb-1">Commit Message</label>
-                    <input type="text" id="gh-commit" value="Update website content via Servos Studio" class="w-full bg-studio-bg border border-studio-border rounded-xl p-3 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-            </div>
-
-            <div class="pt-2 flex gap-3">
-                <button onclick="closePublishModal()" class="w-1/2 bg-studio-bg hover:bg-studio-border text-slate-300 font-bold py-3 rounded-xl transition-colors">
-                    Cancel
-                </button>
-                <button onclick="executeGitHubCommit()" id="gh-submit-btn" class="w-1/2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all">
-                    <i data-lucide="git-commit" class="h-4 w-4"></i>
-                    <span>Commit & Deploy</span>
-                </button>
-            </div>
+      <div id="tab-hero" class="tab-content">
+        <div class="panel-title"><div><h2>Header &amp; hero</h2><p>The first thing visitors see.</p></div></div>
+        <div class="field"><label>Top banner text</label><input type="text" data-key="promoText"></div>
+        <div class="row2">
+          <div class="field"><label>Brand name</label><input type="text" data-key="brandName"></div>
+          <div class="field"><label>Tagline under the logo</label><input type="text" data-key="brandTagline"></div>
         </div>
+        <div class="field"><label>Headline, line 1</label><input type="text" data-key="heroTitle1"></div>
+        <div class="field"><label>Headline, line 2 (highlighted)</label><input type="text" data-key="heroTitle2"></div>
+        <div class="field"><label>Intro paragraph</label><textarea rows="4" data-key="heroSubtitle"></textarea></div>
+        <div class="row2">
+          <div class="field"><label>Main button text</label><input type="text" data-key="heroCtaPrimary"></div>
+          <div class="field"><label>Phone</label><input type="text" data-key="contactPhone"></div>
+        </div>
+        <div class="field"><label>Email</label><input type="email" data-key="contactEmail"></div>
+      </div>
+
+      <div id="tab-why" class="tab-content" hidden>
+        <div class="panel-title"><div><h2>Why Servos</h2><p>Four short reasons to work with you.</p></div></div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="whyUsTitle"></div>
+        <div class="field"><label>Section intro</label><textarea rows="2" data-key="whyUsSubtitle"></textarea></div>
+        <div id="whyus-list"></div>
+      </div>
+
+      <div id="tab-services" class="tab-content" hidden>
+        <div class="panel-title">
+          <div><h2>Machines</h2><p>One tab and card per machine type.</p></div>
+          <button type="button" class="btn" data-action="add-service"><svg class="ic"><use href="#a-plus"/></svg>Add</button>
+        </div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="servicesTitle"></div>
+        <div class="field"><label>Section intro</label><input type="text" data-key="servicesSubtitle"></div>
+        <div id="services-list"></div>
+      </div>
+
+      <div id="tab-gallery" class="tab-content" hidden>
+        <div class="panel-title">
+          <div><h2>Venues</h2><p>The kinds of places your machines work well.</p></div>
+          <button type="button" class="btn" data-action="add-gallery"><svg class="ic"><use href="#a-plus"/></svg>Add</button>
+        </div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="galleryTitle"></div>
+        <div class="field"><label>Section intro</label><textarea rows="2" data-key="gallerySubtitle"></textarea></div>
+        <div id="gallery-list"></div>
+      </div>
+
+      <div id="tab-mixes" class="tab-content" hidden>
+        <div class="panel-title"><div><h2>Product mixes</h2><p>What goes in the machines, day and night.</p></div></div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="mixesTitle"></div>
+        <div class="field"><label>Section intro</label><input type="text" data-key="mixesSubtitle"></div>
+        <div class="group">
+          <h3><svg class="ic"><use href="#a-sun"/></svg>Daytime</h3>
+          <div class="field"><label>Title</label><input type="text" data-key="dayMixTitle"></div>
+          <div class="field"><label>Description</label><textarea rows="3" data-key="dayMixDesc"></textarea></div>
+          <div class="field"><label>Featured items (comma separated)</label><input type="text" data-csv="dayMixItems"></div>
+        </div>
+        <div class="group">
+          <h3><svg class="ic"><use href="#a-info"/></svg>Nighttime</h3>
+          <div class="field"><label>Title</label><input type="text" data-key="nightMixTitle"></div>
+          <div class="field"><label>Description</label><textarea rows="3" data-key="nightMixDesc"></textarea></div>
+          <div class="field"><label>Featured items (comma separated)</label><input type="text" data-csv="nightMixItems"></div>
+        </div>
+      </div>
+
+      <div id="tab-revenue" class="tab-content" hidden>
+        <div class="panel-title"><div><h2>Revenue share</h2><p>Keep this matching your written agreement.</p></div></div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="revTitle"></div>
+        <div class="field"><label>Section intro</label><textarea rows="2" data-key="revSubtitle"></textarea></div>
+        <div class="field"><label>Card 1: the trial</label><textarea rows="3" data-key="revStep1"></textarea></div>
+        <div class="field"><label>Card 2: the 10% share</label><textarea rows="3" data-key="revStep2"></textarea></div>
+        <div class="field"><label>Card 3: slower months and flat rental</label><textarea rows="3" data-key="revStep3"></textarea></div>
+      </div>
+
+      <div id="tab-coverage" class="tab-content" hidden>
+        <div class="panel-title"><div><h2>Service areas</h2><p>Where you can place machines.</p></div></div>
+        <div class="field"><label>Headline</label><input type="text" data-key="coverageTitle"></div>
+        <div class="field"><label>Intro</label><textarea rows="3" data-key="coverageDesc"></textarea></div>
+        <div class="field"><label>Cities (comma separated)</label><textarea rows="3" data-csv="cities"></textarea></div>
+      </div>
+
+      <div id="tab-faq" class="tab-content" hidden>
+        <div class="panel-title">
+          <div><h2>FAQ</h2><p>Questions visitors ask most.</p></div>
+          <button type="button" class="btn" data-action="add-faq"><svg class="ic"><use href="#a-plus"/></svg>Add</button>
+        </div>
+        <div class="field"><label>Section headline</label><input type="text" data-key="faqTitle"></div>
+        <div id="faq-list"></div>
+      </div>
+
+      <div id="tab-leads" class="tab-content" hidden>
+        <div class="panel-title"><div><h2>Request form</h2><p>Where new leads are sent.</p></div></div>
+        <div class="field"><label>Form headline</label><input type="text" data-key="formTitle"></div>
+        <div class="field"><label>Form intro</label><input type="text" data-key="formSubtitle"></div>
+        <div class="field">
+          <label>Form endpoint URL</label>
+          <input type="text" data-key="formspreeUrl" placeholder="https://formspree.io/f/xxxxxxxx">
+          <p class="hint">Use the form URL from your Formspree dashboard. An email address will not work here.</p>
+        </div>
+        <div class="field"><label>Submit button text</label><input type="text" data-key="formSubmitBtnText"></div>
+        <div class="note"><svg class="ic ic-lg"><use href="#a-info"/></svg><span>Prefer to stay on Netlify? Netlify Forms can collect submissions without Formspree, but it needs a small change to the form markup. Ask and we'll set it up.</span></div>
+      </div>
+
     </div>
+  </aside>
 
-    <!-- TOAST NOTIFICATION CONTAINER -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+  <main class="pane" id="preview-pane">
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="Device size">
+        <button type="button" class="active" data-action="device" data-device="desktop" title="Desktop" aria-label="Desktop"><svg class="ic"><use href="#a-monitor"/></svg></button>
+        <button type="button" data-action="device" data-device="tablet" title="Tablet" aria-label="Tablet"><svg class="ic"><use href="#a-tablet"/></svg></button>
+        <button type="button" data-action="device" data-device="phone" title="Phone" aria-label="Phone"><svg class="ic"><use href="#a-phone"/></svg></button>
+      </div>
+      <div class="right">
+        <button type="button" data-action="reload"><svg class="ic"><use href="#a-refresh"/></svg>Reload</button>
+        <span id="viewport-size-indicator">Full width</span>
+      </div>
+    </div>
+    <div id="preview-wrapper">
+      <div id="preview-viewport" data-device="desktop">
+        <iframe id="live-iframe" title="Live site preview" sandbox="allow-scripts allow-same-origin"></iframe>
+      </div>
+    </div>
+  </main>
 
-    <!-- JAVASCRIPT APPLICATION LOGIC -->
-    <script>
-        
-        // Initial Default Website Data Schema (Includes Restored Why Us & Gallery + Flipbook Services)
-        const DEFAULT_STATE = {
-            promoText: "30-Day Risk-Free Trial | Earn 10% Revenue Share over $1,000 gross!",
-            brandName: "SERVOS VENDING",
-            brandTagline: "Palm Beach Automated Retail & Amenities",
-            heroTitle1: "Premium Automated Services.",
-            heroTitle2: "Zero Hassle. Real Revenue Share.",
-            heroSubtitle: "Elevate your venue with factory-direct smart vending, Boost Barz phone charging stations, and VTM trading card kiosks across Palm Beach County. 100% managed with zero capital cost.",
-            heroCtaPrimary: "Start 30-Day Risk-Free Trial",
-            contactPhone: "(561) 555-0199",
-            contactEmail: "rileyc@servosvending.com",
-            
-            // Restored Why Us Section Data
-            whyUsTitle: "Why Premier Venues Choose Servos",
-            whyUsSubtitle: "We remove all operational headaches so property managers can offer high-end amenities while earning passive revenue.",
-            whyUsItems: [
-                {
-                    icon: "dollar-sign",
-                    title: "$0 Cost & Turnkey Setup",
-                    desc: "We buy, install, insure, stock, and maintain every machine at zero expense to your property."
-                },
-                {
-                    icon: "cpu",
-                    title: "24/7 Smart Telemetry",
-                    desc: "Real-time AI monitoring ensures machines never sit empty and inventory matches tenant preferences."
-                },
-                {
-                    icon: "clock",
-                    title: "Rapid Local PB Service",
-                    desc: "Dedicated technicians based right here in Palm Beach County guarantee rapid restocks and maintenance."
-                },
-                {
-                    icon: "trending-up",
-                    title: "Profitable Revenue Share",
-                    desc: "Receive 10% of monthly gross revenue once threshold is met, turned into pure profit for your venue."
-                }
-            ],
+  <section class="pane" id="code-pane">
+    <div class="toolbar">
+      <span>Generated index.html</span>
+      <button type="button" class="btn" data-action="copy"><svg class="ic"><use href="#a-copy"/></svg>Copy</button>
+    </div>
+    <textarea id="source-code-area" readonly spellcheck="false"></textarea>
+  </section>
 
-            // Services Array for Flipbook Showcase
-            services: [
-                {
-                    id: 1,
-                    supplier: "Vending.com Direct",
-                    supplierColor: "orange",
-                    title: "Combo & AI Smart Coolers",
-                    sub: "Snacks, Cold Drinks & Fresh Meals",
-                    desc: "Supplied directly from the factory floor by Vending.com (built in USA). Features dual-zone climate control, anti-fog glass, and AI grab-and-go contactless checkout.",
-                    bullets: ["Factory direct reliability & warranty", "AI smart glass coolers & dual combo units", "Apple Pay, Google Pay & Tap-to-Pay"],
-                    img: "https://images.unsplash.com/photo-1575224300306-1b8da36134ec?auto=format&fit=crop&w=800&q=80",
-                    techSpecs: {
-                        dimensions: "72\" H x 39\" W x 35\" D",
-                        power: "Standard 115V / 60Hz 12A",
-                        payments: "Nayax Touch (NFC, Chip, Apple Pay)",
-                        telemetry: "24/7 Cellular Remote Telemetry"
-                    }
-                },
-                {
-                    id: 2,
-                    supplier: "Boost Barz Texas",
-                    supplierColor: "purple",
-                    title: "Boost Barz Phone Charging",
-                    sub: "Portable Power Pack Rental Kiosks",
-                    desc: "Supplied by Boost Barz out of Texas. Customers rent a portable battery, charge on the go, and return it when finished. Keeps patrons inside your venue much longer!",
-                    bullets: ["Increases customer dwell time & spending", "Prevents patrons from leaving due to low battery", "Perfect for bars, nightlife, gyms & golf courses"],
-                    img: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80",
-                    techSpecs: {
-                        dimensions: "24\" H x 18\" W x 14\" D (Counter or Stand)",
-                        power: "Low Power 110V Wall Plug",
-                        capacity: "8 to 48 Reusable Power Banks",
-                        returns: "Universal Cross-Kiosk Return System"
-                    }
-                },
-                {
-                    id: 3,
-                    supplier: "VTM Industry Leaders",
-                    supplierColor: "teal",
-                    title: "Trading Card Vending Kiosks",
-                    sub: "Pokémon & Sports Pack Dispensers",
-                    desc: "Supplied by VTM, the undisputed leaders in card vending. Delivers Pokémon booster packs, sports cards, and collectible packs directly to collectors and enthusiasts.",
-                    bullets: ["Massive appeal for collectors & families", "High margin impulse purchases with zero counter space", "Ideal for C-stores, venues & family lounges"],
-                    img: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?auto=format&fit=crop&w=800&q=80",
-                    techSpecs: {
-                        dimensions: "65\" H x 30\" W x 28\" D",
-                        security: "Reinforced Steel Vault Lock",
-                        dispenser: "Precision Servo Drop Sensors",
-                        display: "21.5\" Touchscreen Ad Display"
-                    }
-                }
-            ],
+</div>
 
-            // Restored Gallery Section Data
-            galleryTitle: "Our Installed Venues & Placements",
-            gallerySubtitle: "Take a look at how our modern automated equipment blends into premier Palm Beach locations.",
-            galleryImages: [
-                {
-                    title: "Luxury High-Rise Lounge",
-                    category: "Residential",
-                    img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
-                    caption: "Dual Glass-Front AI Cooler placed in Downtown West Palm Beach residential tower."
-                },
-                {
-                    title: "Nightlife & Cocktail Bar",
-                    category: "Hospitality",
-                    img: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80",
-                    caption: "Boost Barz Portable Charging Station keeping patrons powered up late into the night."
-                },
-                {
-                    title: "Boutique Fitness Club",
-                    category: "Wellness",
-                    img: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
-                    caption: "Daytime Wellness Snack & Clean Energy Bar stocked for workout enthusiasts."
-                },
-                {
-                    title: "Family Entertainment Center",
-                    category: "Retail",
-                    img: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80",
-                    caption: "VTM Trading Card kiosk generating high impulse sales in family gaming center."
-                }
-            ],
+<!-- Publish dialog -->
+<div id="publish-modal" class="modal" hidden>
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="pub-title">
+    <div class="dialog-head">
+      <h2 id="pub-title"><svg class="ic ic-lg"><use href="#a-github"/></svg>Publish to your site</h2>
+      <button type="button" class="icon-btn" data-action="close-publish" aria-label="Close"><svg class="ic"><use href="#a-x"/></svg></button>
+    </div>
+    <p class="hint">Saves the page to your GitHub repo. Netlify then redeploys the site automatically.</p>
+    <div class="field">
+      <label for="gh-token">GitHub access token *</label>
+      <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off">
+      <p class="hint">Use a fine-grained token limited to this one repo, with only "Contents: read and write".</p>
+    </div>
+    <label class="check"><input type="checkbox" id="gh-remember"> Remember the token on this device (otherwise it clears when you close the tab)</label>
+    <div class="row2">
+      <div class="field"><label for="gh-repo">Repo (owner/repo) *</label><input type="text" id="gh-repo" placeholder="yourname/servos-site"></div>
+      <div class="field"><label for="gh-branch">Branch</label><input type="text" id="gh-branch" value="main"></div>
+    </div>
+    <div class="field"><label for="gh-path">File path</label><input type="text" id="gh-path" value="index.html"></div>
+    <div class="field"><label for="gh-commit">Commit message</label><input type="text" id="gh-commit" value="Update website content via Servos Studio"></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-action="close-publish">Cancel</button>
+      <button type="button" class="btn primary" id="gh-submit-btn" data-action="publish">Commit &amp; deploy</button>
+    </div>
+  </div>
+</div>
 
-            // Day & Night Mixes
-            dayMixTitle: "Daytime Wellness Mix",
-            dayMixDesc: "Engineered for high performance, daily focus, and clean hydration. Packed with premium cold brew, clean energy, artisanal snacks, and nutritious bites.",
-            dayMixItems: ["Cold Brew Coffee & Espresso", "Celsius & Clean Energy", "Sparkling Waters & Electrolytes", "Organic Protein Bars & Nuts"],
+<div id="toast-container" class="toasts" aria-live="polite"></div>
 
-            nightMixTitle: "Nighttime Vibes Mix",
-            nightMixDesc: "Tailored for late-night crowds, nightlife venues, and party venues. Includes hydration recovery kits, premium mixers, high-energy drinks, and late-night cravings.",
-            nightMixItems: ["Liquid I.V. & Recovery Packs", "Red Bull & Craft Mixers", "Gourmet Late-Night Snacks", "Hangover Prevention & Gum"],
+<script>
+(function () {
+'use strict';
 
-            // Revenue Section
-            revTitle: "Our Revenue Share Model",
-            revSubtitle: "We believe in earning your trust. That's why every placement starts with a 30-day trial and a clear, profitable revenue share structure.",
-            revStep1: "Every placement starts with a 30-day trial period to measure machine volume, peak traffic times, and resident feedback.",
-            revStep2: "If the machine breaks the $1,000 monthly gross mark during any month of its contract, the business owner receives 10% of monthly gross!",
-            revStep3: "If monthly sales are under $1,000, Servos retains profits to cover stocking and telemetry costs. Flat rental fee options are also available.",
+/* ------------------------------------------------------------------
+   CONTENT (what the public site says). Everything here is editable
+   in the Studio; these are the starting defaults.
+------------------------------------------------------------------- */
+const COPY_VERSION = 3;
+const STORAGE_KEY = 'servos_editor_state_v2';
 
-            // Service Area
-            coverageTitle: "Proudly Serving All of Palm Beach County",
-            coverageDesc: "Our dedicated warehouse and technician fleet provide fast delivery, emergency maintenance response, and smart telemetry restocking throughout Palm Beach County.",
-            cities: ["West Palm Beach", "Boca Raton", "Delray Beach", "Jupiter", "Palm Beach Gardens", "Wellington", "Boynton Beach", "Lake Worth"],
+const DEFAULT_STATE = {
+    _copyVersion: COPY_VERSION,
 
-            // FAQs
-            faqs: [
-                {
-                    q: "How does the 30-day trial and revenue split work?",
-                    a: "Every placement begins with a 30-day trial period. If the machine earns over $1,000 gross monthly revenue, your venue receives 10% of monthly gross! If under $1,000, Servos retains profits for operational costs."
-                },
-                {
-                    q: "Who manufactures your machines and charging stations?",
-                    a: "Our combo machines and AI smart coolers are supplied factory-direct by Vending.com (built in USA). Our phone charging kiosks are supplied by Boost Barz out of Texas, and our trading card machines are manufactured by VTM."
-                },
-                {
-                    q: "What is the difference between Daytime and Nighttime mixes?",
-                    a: "Our Daytime Mix focuses on cold brew coffee, Celsius energy, organic protein bars, and sparkling water. Our Nighttime Mix caters to nightlife spots with Liquid I.V. recovery packs, mixers, Red Bull, and late-night snacks."
-                },
-                {
-                    q: "How fast can a service or machine be installed?",
-                    a: "Once your venue request is submitted, our local Palm Beach technicians complete placement, setup, testing, and stocking within 5 to 7 business days."
-                }
-            ],
+    promoText: "Try a machine free for 30 days. Once it passes $1,000 in a month, you earn 10%.",
+    brandName: "SERVOS VENDING",
+    brandTagline: "Palm Beach County vending & amenities",
+    heroTitle1: "Vending your guests will actually use.",
+    heroTitle2: "We run it. You earn from it.",
+    heroSubtitle: "Servos Vending places smart coolers, phone charging stations and trading card kiosks in Palm Beach County businesses and buildings. We supply, install, stock and maintain every machine, so it costs you nothing and takes nothing off your plate.",
+    heroCtaPrimary: "Start your 30-day trial",
+    contactPhone: "(561) 555-0199",
+    contactEmail: "rileyc@servosvending.com",
 
-            // Leads Endpoint
-            formspreeUrl: "https://formspree.io/f/rileyc@servosvending.com",
-            formSubmitBtnText: "Submit 30-Day Risk-Free Trial Request"
-        };
+    whyUsTitle: "Why venues work with Servos",
+    whyUsSubtitle: "A better amenity for your guests, a new revenue stream for you, and none of the day-to-day work.",
+    whyUsItems: [
+        { icon: "dollar-sign", title: "No cost to you", desc: "We buy, install, insure, stock and maintain every machine. You provide the space and a standard power outlet." },
+        { icon: "cpu", title: "Smart monitoring", desc: "Each machine reports its stock and sales around the clock, so we can restock before shelves run low." },
+        { icon: "clock", title: "Local, fast service", desc: "Our technicians are based right here in Palm Beach County, so restocks and repairs happen quickly." },
+        { icon: "trending-up", title: "You share in the revenue", desc: "Once a machine grosses over $1,000 in a month, you earn 10% of that month's sales." }
+    ],
 
-        let state = {};
-
-        function loadSavedState() {
-            const saved = localStorage.getItem('servos_editor_state_v2');
-            if (saved) {
-                try {
-                    state = JSON.parse(saved);
-                } catch(e) {
-                    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                }
-            } else {
-                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    servicesTitle: "Machines for every kind of space",
+    servicesSubtitle: "Pick a category to see how it works and what it takes.",
+    services: [
+        {
+            id: 1,
+            supplier: "Vending.com",
+            title: "Smart Coolers & Combo Machines",
+            sub: "Snacks, cold drinks and fresh meals",
+            desc: "Built in the USA and supplied factory-direct by Vending.com. Dual-zone cooling and anti-fog glass keep everything fresh and easy to see, and AI-powered grab-and-go checkout lets guests take what they want and walk away.",
+            bullets: ["Factory-direct, with warranty", "Smart glass coolers and dual combo units", "Accepts Apple Pay, Google Pay and tap-to-pay"],
+            img: "",
+            techSpecs: {
+                dimensions: "72\" H x 39\" W x 35\" D",
+                power: "Standard 115V / 60Hz, 12A",
+                payments: "Nayax Touch (NFC, chip, Apple Pay)",
+                telemetry: "24/7 cellular remote telemetry"
+            }
+        },
+        {
+            id: 2,
+            supplier: "Boost Barz",
+            title: "Phone Charging Stations",
+            sub: "Portable power bank rentals",
+            desc: "From Boost Barz in Texas. Guests rent a portable battery, charge up on the go and return it when they're done. A dead phone is one less reason to leave early.",
+            bullets: ["Keeps guests around longer", "Great for bars, nightlife, gyms and golf courses", "Compact enough for a counter or a stand"],
+            img: "",
+            techSpecs: {
+                dimensions: "24\" H x 18\" W x 14\" D (counter or stand)",
+                power: "Low power, 110V wall plug",
+                capacity: "8 to 48 reusable power banks",
+                returns: "Universal cross-kiosk return system"
+            }
+        },
+        {
+            id: 3,
+            supplier: "VTM",
+            title: "Trading Card Kiosks",
+            sub: "Pokémon and sports card packs",
+            desc: "From VTM, a specialist in trading card vending. Booster packs, sports cards and collectibles for collectors and families, in a machine that doesn't take up much room.",
+            bullets: ["A hit with collectors and families", "Easy impulse buy with a small footprint", "Ideal for convenience stores, venues and family lounges"],
+            img: "",
+            techSpecs: {
+                dimensions: "65\" H x 30\" W x 28\" D",
+                security: "Reinforced steel vault lock",
+                dispenser: "Precision servo drop sensors",
+                display: "21.5\" touchscreen ad display"
             }
         }
+    ],
 
-        function saveState() {
-            localStorage.setItem('servos_editor_state_v2', JSON.stringify(state));
-            const statusText = document.getElementById('save-status-text');
-            statusText.innerText = "Auto-Saved (" + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ")";
-            renderIframePreview();
+    galleryTitle: "Made for places people gather",
+    gallerySubtitle: "From apartment lounges to nightlife, these are the kinds of spaces where our machines work best.",
+    galleryImages: [
+        { title: "Residential buildings", category: "Residential", img: "", caption: "Resident lounges and clubhouses love a smart cooler that's open around the clock." },
+        { title: "Bars & nightlife", category: "Hospitality", img: "", caption: "Phone chargers keep the night going, and guests stick around." },
+        { title: "Gyms & fitness studios", category: "Wellness", img: "", caption: "Protein bars, electrolytes and cold brew right where people work out." },
+        { title: "Family entertainment", category: "Entertainment", img: "", caption: "Trading card kiosks turn waiting around into a fun little purchase." }
+    ],
+
+    mixesTitle: "Stocked for the time of day",
+    mixesSubtitle: "We tailor what's inside each machine to who's using your venue and when.",
+    dayMixTitle: "Daytime Mix",
+    dayMixDesc: "For people who are working, working out or just getting through the day: cold brew, clean energy drinks, good snacks and electrolytes.",
+    dayMixItems: ["Cold brew coffee & espresso", "Celsius & clean energy", "Sparkling water & electrolytes", "Organic protein bars & nuts"],
+    nightMixTitle: "Nighttime Mix",
+    nightMixDesc: "For bars, lounges and late nights: recovery packs, mixers, energy drinks and the snacks everyone wants at midnight.",
+    nightMixItems: ["Liquid I.V. & recovery packs", "Red Bull & craft mixers", "Gourmet late-night snacks", "Hangover prevention & gum"],
+
+    revTitle: "How the revenue share works",
+    revSubtitle: "Simple and fair. Every placement starts with a 30-day trial, and you share in the upside.",
+    revStep1: "Every placement starts with a 30-day trial. We watch sales, busy times and feedback to make sure the machine is a good fit for your space.",
+    revStep2: "In any month a machine grosses over $1,000, you receive 10% of that month's gross sales.",
+    revStep3: "In months under $1,000, Servos keeps the revenue to cover stocking and monitoring. Prefer predictable income? Ask us about a flat monthly rental fee.",
+
+    coverageTitle: "Serving all of Palm Beach County",
+    coverageDesc: "Our technicians and restocking routes cover the whole county. Don't see your city listed? Reach out and we'll let you know.",
+    cities: ["West Palm Beach", "Boca Raton", "Delray Beach", "Jupiter", "Palm Beach Gardens", "Wellington", "Boynton Beach", "Lake Worth"],
+
+    faqTitle: "Questions, answered",
+    faqs: [
+        { q: "How does the free trial work?", a: "Every placement starts with a 30-day trial. Whenever a machine grosses more than $1,000 in a month, you receive 10% of that month's sales. If a month comes in under $1,000, Servos keeps the revenue to cover stocking and operating costs. Flat rental options are available too." },
+        { q: "Does it cost my venue anything?", a: "No. Servos supplies, installs, insures, stocks and maintains the equipment. You provide the space and a standard power outlet." },
+        { q: "Who makes your machines?", a: "Our smart coolers and combo machines come factory-direct from Vending.com and are built in the USA. Phone charging stations are supplied by Boost Barz in Texas, and our trading card kiosks are made by VTM." },
+        { q: "Will you stock what my guests actually want?", a: "That's the goal. Our Daytime Mix leans toward cold brew, clean energy drinks, protein bars and sparkling water. Our Nighttime Mix suits bars and late-night venues with recovery packs, mixers, energy drinks and snacks. Smart monitoring helps us adjust as we learn what sells." },
+        { q: "How quickly can a machine be installed?", a: "Once you send in a request, our local technicians typically handle placement, setup, testing and stocking within 5 to 7 business days." }
+    ],
+
+    formTitle: "Let's find the right spot",
+    formSubtitle: "Tell us a bit about your venue and we'll reply within one business day.",
+    formspreeUrl: "https://formspree.io/f/YOUR_FORM_ID",
+    formSubmitBtnText: "Request my free trial"
+};
+
+/* ------------------------------------------------------------------
+   HELPERS & STATE
+------------------------------------------------------------------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+const clone = (o) => JSON.parse(JSON.stringify(o));
+const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const icon = (n, cls) => '<svg class="ic ' + (cls || '') + '" aria-hidden="true"><use href="#a-' + n + '"/></svg>';
+const splitCsv = (v) => v.split(',').map((s) => s.trim()).filter(Boolean);
+const splitLines = (v) => v.split('\n').map((s) => s.trim()).filter(Boolean);
+const prettyKey = (k) => String(k).replace(/([A-Z])/g, ' $1').trim().replace(/^./, (c) => c.toUpperCase());
+
+let state = {};
+
+function loadState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
+    if (!saved || typeof saved !== 'object') { state = clone(DEFAULT_STATE); return; }
+
+    if (saved._copyVersion !== COPY_VERSION) {
+        const adopt = window.confirm(
+            'A fully rewritten set of website copy is available.\n\n' +
+            'OK = load the new copy (keeps your phone, email and form endpoint).\n' +
+            'Cancel = keep your current text.'
+        );
+        if (adopt) {
+            state = clone(DEFAULT_STATE);
+            if (saved.contactPhone) state.contactPhone = saved.contactPhone;
+            if (saved.contactEmail) state.contactEmail = saved.contactEmail;
+            if (saved.formspreeUrl && !/YOUR_FORM_ID|@/.test(saved.formspreeUrl)) state.formspreeUrl = saved.formspreeUrl;
+        } else {
+            state = Object.assign(clone(DEFAULT_STATE), saved);
         }
+        state._copyVersion = COPY_VERSION;
+        persist();
+    } else {
+        state = Object.assign(clone(DEFAULT_STATE), saved);
+    }
+}
 
-        function resetDefaultState() {
-            if (confirm("Reset all custom edits back to factory default values?")) {
-                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
-                saveState();
-                populateFormInputs();
-                renderWhyUsList();
-                renderServicesList();
-                renderGalleryList();
-                renderFaqList();
-                showToast("Reset to default configuration!");
-            }
-        }
+function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
 
-        function updateField(key, val) {
-            state[key] = val;
-            saveState();
-        }
+let previewTimer = null;
+function saveState() {
+    persist();
+    $('#save-status-text').textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(renderPreview, 250);
+}
 
-        function updateMixItems(type, val) {
-            const arr = val.split(',').map(s => s.trim()).filter(Boolean);
-            if (type === 'day') state.dayMixItems = arr;
-            if (type === 'night') state.nightMixItems = arr;
-            saveState();
-        }
-
-        function updateCitiesList(val) {
-            state.cities = val.split(',').map(s => s.trim()).filter(Boolean);
-            saveState();
-        }
-
-        // Generate Complete Standalone Production HTML Website (Including Flipbook Showcase, Restored Why Us, and Gallery)
+        // Generates the complete public site as ONE self-contained HTML file.
+        // No Tailwind, no web fonts, no icon library, no stock photos: CSS, icons and script are all inlined.
         function generateStandaloneHTML() {
+            const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            const ic = (name, cls) => `<svg class="ic ${cls || ''}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+
+            // Editor icon names (lucide) -> inline sprite names
+            const ICON_MAP = { 'dollar-sign': 'dollar', 'cpu': 'cpu', 'clock': 'clock', 'trending-up': 'trend', 'shield-check': 'shield', 'sparkles': 'sparkle', 'check': 'check', 'sun': 'sun', 'moon': 'moon', 'phone': 'phone' };
+            const whyIcon = (n) => ICON_MAP[n] || 'check-circle';
+
+            // Stock-photo and placeholder URLs are ignored so the page makes no third-party requests.
+            // Put your own photos in an images/ folder and paste e.g. images/cooler.jpg into the editor.
+            const usableImg = (u) => {
+                u = String(u || '').trim();
+                if (!u || /^https?:\/\/(images\.unsplash\.com|placehold\.co|source\.unsplash\.com)/i.test(u)) return '';
+                return u;
+            };
+            const svcIcon = (s) => /charg|battery|power/i.test(s.title || '') ? 'battery' : /card|pok/i.test(s.title || '') ? 'cards' : 'cooler';
+            const galIcon = (g) => {
+                const c = (g.category || '') + ' ' + (g.title || '');
+                if (/night|hospit|bar|cocktail/i.test(c)) return 'martini';
+                if (/well|fit|gym/i.test(c)) return 'dumbbell';
+                if (/retail|family|game|entertain/i.test(c)) return 'gamepad';
+                return 'building';
+            };
+            const prettyKey = (k) => String(k).replace(/([A-Z])/g, ' $1').trim().replace(/^./, (c) => c.toUpperCase());
+            const phoneDigits = String(state.contactPhone || '').replace(/\D/g, '');
+            const services = state.services || [];
+            const name = esc(state.brandName);
+
+            const whyHTML = (state.whyUsItems || []).map((w) => `
+                <div class="card hover">
+                    <div class="icon-tile">${ic(whyIcon(w.icon), 'ic-lg')}</div>
+                    <h3>${esc(w.title)}</h3>
+                    <p>${esc(w.desc)}</p>
+                </div>`).join('');
+
+            const tabsHTML = services.map((s, i) => `
+                <button type="button" class="tab" role="tab" data-i="${i}" aria-selected="${i === 0}">${esc(s.title)}</button>`).join('');
+
+            const servicesHTML = services.map((s, i) => {
+                const img = usableImg(s.img);
+                const specs = Object.keys(s.techSpecs || {}).filter((k) => String(s.techSpecs[k]).trim());
+                return `
+                <article class="svc${i === 0 ? ' active' : ''}">
+                    <div class="svc-main">
+                        <div>
+                            <div class="badge-row"><span class="badge">${esc(s.supplier)}</span><span class="count">${i + 1} / ${services.length}</span></div>
+                            <h3>${esc(s.title)}</h3>
+                            <p class="tagline">${esc(s.sub)}</p>
+                            <p>${esc(s.desc)}</p>
+                            <ul class="ticks">${(s.bullets || []).map((b) => `
+                                <li>${ic('check-circle', 'ic-sm')}<span>${esc(b)}</span></li>`).join('')}
+                            </ul>
+                            <a href="#builder" class="btn btn-primary btn-sm" data-pick="${esc(s.title)}">Request this for my venue</a>
+                        </div>
+                        <div class="media">
+                            ${ic(svcIcon(s))}
+                            ${img ? `<img src="${esc(img)}" alt="${esc(s.title)}" loading="lazy" onerror="this.remove()">` : ''}
+                            <span class="media-cap">${ic('shield', 'ic-sm')} Supplied by ${esc(s.supplier)}</span>
+                        </div>
+                    </div>
+                    ${specs.length ? `<div class="specs">
+                        <h4>The details</h4>
+                        <dl class="spec-grid">${specs.map((k) => `
+                            <div class="spec"><dt>${esc(prettyKey(k))}</dt><dd>${esc(s.techSpecs[k])}</dd></div>`).join('')}
+                        </dl>
+                    </div>` : ''}
+                </article>`;
+            }).join('');
+
+            const galleryHTML = (state.galleryImages || []).map((g) => {
+                const img = usableImg(g.img);
+                return `
+                <div class="venue">
+                    <div class="top"><span class="tag">${esc(g.category)}</span>${ic(galIcon(g))}${img ? `<img src="${esc(img)}" alt="${esc(g.title)}" loading="lazy" onerror="this.remove()" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">` : ''}</div>
+                    <div class="body"><h3>${esc(g.title)}</h3><p>${esc(g.caption)}</p></div>
+                </div>`;
+            }).join('');
+
+            const mix = (cls, title, desc, items, icon) => `
+                <div class="mix ${cls}">
+                    <div class="mix-head"><h3>${esc(title)}</h3>${ic(icon, 'ic-lg')}</div>
+                    <p>${esc(desc)}</p>
+                    <ul class="mix-items">${(items || []).map((it) => `
+                        <li>${ic('check', 'ic-sm')}${esc(it)}</li>`).join('')}
+                    </ul>
+                </div>`;
+
+            const faqHTML = (state.faqs || []).map((f) => `
+            <details class="faq">
+                <summary>${esc(f.q)}${ic('down', 'ic-md')}</summary>
+                <p>${esc(f.a)}</p>
+            </details>`).join('');
+
+            const serviceOptions = services.map((s) => `<option>${esc(s.title)}</option>`).join('');
+
+            const jsonLd = JSON.stringify({
+                '@context': 'https://schema.org', '@type': 'LocalBusiness',
+                name: state.brandName, areaServed: 'Palm Beach County, Florida',
+                telephone: state.contactPhone, email: state.contactEmail
+            }).replace(/</g, '\\u003c');
+
+            const metaDesc = 'Smart coolers, phone charging stations and trading card kiosks for Palm Beach County venues. We install and run everything at no cost to you.';
+            const navLinks = '<a href="#why-us">Why Servos</a><a href="#services">Machines</a><a href="#venues">Venues</a><a href="#mixes">Stocking</a><a href="#revenue">Revenue Share</a><a href="#coverage">Areas</a><a href="#faq">FAQ</a>';
+
             return `<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${state.brandName} | Automated Retail & Amenities in Palm Beach County</title>
-    
-    <script src="https://cdn.tailwindcss.com"><\/script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"><\/script>
-
+    <title>${name} | Vending &amp; Amenities in Palm Beach County</title>
+    <meta name="description" content="${esc(metaDesc)}">
+    <meta property="og:title" content="${name} | Vending &amp; Amenities in Palm Beach County">
+    <meta property="og:description" content="${esc(metaDesc)}">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0f1014">
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        heading: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        servos: {
-                            orange: '#ffbe55',
-                            orangeDark: '#ff773d',
-                            orangeHover: '#e05d25',
-                            darkBg: '#0f1014',
-                            darkCard: '#1a1b23',
-                            darkBorder: '#2a2b36'
-                        }
-                    }
-                }
-            }
-        }
+        (function () {
+            var d = document.documentElement;
+            d.className += ' js';
+            try { var t = localStorage.getItem('servos-theme'); if (t) d.setAttribute('data-theme', t); } catch (e) {}
+        })();
     <\/script>
-
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f1014; }
-        ::-webkit-scrollbar-thumb { background: #2a2b36; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff773d; }
-        .grad-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); }
-        .grad-text-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        /* 3D Flip Card Deck CSS */
-        .perspective-1000 { perspective: 1000px; }
-        .flip-card-inner {
-            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-        .flip-card.flipped .flip-card-inner {
-            transform: rotateY(180deg);
-        }
-        .flip-card-front, .flip-card-back {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .flip-card-back {
-            transform: rotateY(180deg);
-        }
+/* Servos Vending - static stylesheet. No frameworks, no external fonts. */
 
-        .faq-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; }
-        .faq-card.active .faq-content { max-height: 400px; opacity: 1; }
-        .faq-icon { transition: transform 0.3s ease; }
-        .faq-card.active .faq-icon { transform: rotate(180deg); }
+:root {
+  --orange: #ffbe55;
+  --orange-dark: #ff773d;
+  --orange-text: #c2500f;
+  --grad: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%);
+
+  --bg: #f8fafc;
+  --bg-alt: #f1f5f9;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #475569;
+  --chip: #e2e8f0;
+  --field: #f8fafc;
+  --green: #10b981;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 24px;
+  --shadow: 0 4px 14px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, .15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
+    --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
+    --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
+  --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
+  --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+[id] { scroll-margin-top: 6rem; }
+body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; transition: background .2s, color .2s; }
+h1, h2, h3, h4, p, ul, dl, dd { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 3px solid var(--orange-dark); outline-offset: 2px; }
+
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.ic-sm { width: 16px; height: 16px; }
+.ic-md { width: 20px; height: 20px; }
+.ic-lg { width: 26px; height: 26px; }
+.hide-in-light { display: none; }
+.skip { position: absolute; left: -9999px; top: 8px; background: #fff; color: #0f172a; padding: 8px 16px; border-radius: 8px; font-weight: 700; z-index: 100; }
+.skip:focus { left: 8px; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.wrap-md { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+.wrap-sm { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+.center { text-align: center; }
+.section { padding: 64px 0; }
+.section.alt { background: var(--bg-alt); }
+.stack > * + * { margin-top: 14px; }
+.eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.section-head { max-width: 640px; margin: 0 auto 40px; text-align: center; }
+.section-head > * + * { margin-top: 8px; }
+h2 { font-size: 30px; font-weight: 900; line-height: 1.2; }
+h3 { font-weight: 800; }
+.lead { color: var(--muted); font-size: 16px; }
+.muted { color: var(--muted); }
+.grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-weight: 800; padding: 12px 22px; transition: transform .15s; }
+.btn-primary { background: var(--grad); color: #fff; box-shadow: var(--shadow); }
+.btn-primary:hover { transform: scale(1.04); }
+.btn-ghost { background: var(--card); border: 1px solid var(--border); }
+.btn-lg { padding: 16px 30px; font-size: 16px; }
+.btn-sm { padding: 10px 18px; font-size: 14px; border-radius: 12px; }
+.btn-block { width: 100%; padding: 16px; font-size: 16px; }
+
+/* Announcement bar */
+.announce { background: linear-gradient(90deg, #9333ea, #2563eb); color: #fff; font-weight: 700; font-size: 14px; padding: 10px 16px; text-align: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 99px; font-size: 11px; text-transform: uppercase; font-weight: 800; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.header-row { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
+.brand-name { display: block; font-weight: 900; font-size: 18px; letter-spacing: .04em; line-height: 1; }
+.brand-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.nav { display: none; gap: 24px; font-size: 14px; font-weight: 600; }
+.nav a:hover { color: var(--orange-dark); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; }
+.icon-btn:hover { background: var(--chip); }
+.header-cta { display: none; }
+.mobile-menu { display: none; border-top: 1px solid var(--border); padding: 10px 20px 16px; font-weight: 600; font-size: 15px; }
+.mobile-menu.open { display: block; }
+.mobile-menu a { display: block; padding: 11px 0; }
+.mobile-menu .btn { color: #fff; margin-top: 8px; }
+@media (min-width: 640px) { .header-cta { display: inline-flex; } }
+@media (min-width: 1024px) { .nav { display: flex; } .menu-btn, .mobile-menu { display: none !important; } }
+
+/* Hero */
+.hero { padding: 80px 20px 72px; max-width: 1000px; margin: 0 auto; text-align: center; }
+.hero > * + * { margin-top: 24px; }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--chip); border-radius: 99px; padding: 8px 16px; font-size: 12px; font-weight: 700; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.hero h1 { font-size: clamp(36px, 7vw, 62px); font-weight: 900; line-height: 1.1; }
+.hero p.lead { font-size: 18px; max-width: 720px; margin-left: auto; margin-right: auto; }
+.btn-row { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+@media (min-width: 640px) { .btn-row { flex-direction: row; } }
+.checks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.checks li { display: flex; align-items: center; gap: 6px; }
+.checks .ic { color: var(--green); }
+
+/* Cards / grids */
+.grid { display: grid; gap: 24px; }
+@media (min-width: 640px) { .grid-2, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-2-lg { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.card.hover:hover { border-color: rgba(255, 119, 61, .5); }
+.card > * + * { margin-top: 12px; }
+.card h3 { font-size: 18px; }
+.card p { font-size: 14px; color: var(--muted); }
+.icon-tile { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 119, 61, .12); color: var(--orange-dark); display: grid; place-items: center; }
+.num { width: 32px; height: 32px; border-radius: 10px; background: var(--grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
+
+/* Services */
+.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
+.tab { padding: 9px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--card); border: 1px solid var(--border); }
+.tab[aria-selected="true"] { background: #f97316; border-color: #f97316; color: #fff; box-shadow: var(--shadow); }
+.svc-list { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
+.js .svc-list .svc { display: none; }
+.js .svc-list .svc.active { display: block; }
+.svc { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+.svc-main { display: grid; gap: 28px; padding: 28px; align-items: center; }
+@media (min-width: 768px) { .svc-main { grid-template-columns: 1fr 1fr; padding: 40px; } }
+.svc-main > div > * + * { margin-top: 14px; }
+.badge-row { display: flex; align-items: center; gap: 10px; }
+.badge { background: rgba(249, 115, 22, .15); color: var(--orange-text); border: 1px solid rgba(249, 115, 22, .3); border-radius: 99px; padding: 3px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.count { font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--muted); }
+.svc h3 { font-size: 30px; font-weight: 900; line-height: 1.15; }
+.tagline { font-size: 14px; font-weight: 700; color: var(--orange-text); }
+.svc p { font-size: 14px; color: var(--muted); }
+.ticks li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 600; margin-top: 8px; }
+.ticks .ic { color: var(--green); margin-top: 3px; }
+.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
+.media .ic { width: 96px; height: 96px; stroke-width: 1.4; opacity: .95; }
+.media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.media-cap { position: absolute; left: 14px; bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.specs { border-top: 1px solid var(--border); background: var(--bg-alt); padding: 24px 28px; }
+@media (min-width: 768px) { .specs { padding: 24px 40px; } }
+.specs h4 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-bottom: 12px; }
+.spec-grid { display: grid; gap: 12px; }
+@media (min-width: 640px) { .spec-grid { grid-template-columns: 1fr 1fr; } }
+.spec { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.spec dt { font-size: 11px; text-transform: uppercase; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.spec dd { font-weight: 700; font-size: 14px; }
+.deck-nav { display: none; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
+.js .deck-nav { display: flex; }
+.round { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; }
+.round:hover { background: #f97316; color: #fff; border-color: #f97316; }
+.deck-count { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--muted); }
+
+/* Venue cards */
+.venue .top { height: 150px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; }
+.venue .top .ic { width: 56px; height: 56px; stroke-width: 1.5; }
+.venue .tag { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, .75); color: var(--orange); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
+.venue { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.venue .body { padding: 20px; }
+.venue .body > * + * { margin-top: 8px; }
+.venue h3 { font-size: 16px; }
+.venue p { font-size: 14px; color: var(--muted); }
+
+/* Mixes */
+.mix { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; }
+.mix > * + * { margin-top: 16px; }
+.mix-head { display: flex; justify-content: space-between; align-items: center; }
+.mix h3 { font-size: 24px; font-weight: 900; }
+.mix.day h3, .mix.day .ic-lg { color: #f59e0b; }
+.mix.night h3, .mix.night .ic-lg { color: #a78bfa; }
+.mix p { font-size: 14px; color: var(--muted); }
+.mix-items { display: grid; gap: 8px; }
+@media (min-width: 640px) { .mix-items { grid-template-columns: 1fr 1fr; } }
+.mix-items li { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600; }
+.mix.day .mix-items .ic { color: #f59e0b; }
+.mix.night .mix-items .ic { color: #a78bfa; }
+
+/* Cities */
+.cities { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.cities li { background: var(--chip); border-radius: 12px; padding: 6px 14px; font-size: 14px; font-weight: 700; }
+
+/* Form */
+.form-card { max-width: 720px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow-lg); }
+.form-card > * + * { margin-top: 20px; }
+.form-card h2 { font-size: 26px; }
+.fields { display: grid; gap: 16px; }
+@media (min-width: 640px) { .fields { grid-template-columns: 1fr 1fr; } }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+input, select, textarea { width: 100%; background: var(--field); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; }
+.honey { position: absolute; left: -9999px; height: 0; overflow: hidden; }
+.fine { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* FAQ (native details, works without JS) */
+.faq { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 0 20px; box-shadow: var(--shadow); }
+.faq + .faq { margin-top: 12px; }
+.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; font-weight: 800; font-size: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .ic { transition: transform .25s; }
+.faq[open] summary .ic { transform: rotate(180deg); }
+.faq p { padding: 0 0 18px; font-size: 14px; color: var(--muted); }
+
+/* Footer */
+.site-footer { background: #020617; color: #94a3b8; text-align: center; padding: 40px 20px; font-size: 14px; border-top: 1px solid #1e293b; }
+.site-footer p + p { margin-top: 8px; }
+.site-footer a:hover { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
     </style>
+    <script type="application/ld+json">${jsonLd}<\/script>
 </head>
-<body class="font-sans bg-slate-50 dark:bg-servos-darkBg text-slate-900 dark:text-slate-100 transition-colors">
+<body>
 
-    <!-- Top Announcement Bar -->
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-xs py-2.5 px-4 text-center tracking-wide flex justify-center items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] uppercase font-extrabold">
-            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-amber-300"></i> Special Offer
-        </span> 
-        <span>${state.promoText}</span>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+        <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+        <symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+        <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+        <symbol id="i-trend" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+        <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></symbol>
+        <symbol id="i-cooler" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 12h14M9 6v2M9 16v2"/></symbol>
+        <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M9 9.5 7.5 12H11l-1.5 2.5"/></symbol>
+        <symbol id="i-cards" viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="15" rx="2"/><path d="M9 3h10a2 2 0 0 1 2 2v12"/></symbol>
+        <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></symbol>
+        <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8M12 11v11M19 3l-7 8-7-8z"/></symbol>
+        <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></symbol>
+        <symbol id="i-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/></symbol>
+    </defs>
+</svg>
+
+<a href="#main" class="skip">Skip to content</a>
+
+<div class="announce">
+    <span class="pill">${ic('sparkle', 'ic-sm')} 30-day trial</span>
+    <span>${esc(state.promoText)}</span>
+</div>
+
+<header class="site-header">
+    <div class="wrap">
+        <div class="header-row">
+            <a href="#" class="brand" aria-label="${name} home">
+                <span class="brand-mark">${esc(String(state.brandName || 'S').charAt(0))}</span>
+                <span>
+                    <span class="brand-name">${name}</span>
+                    <span class="brand-sub">${esc(state.brandTagline)}</span>
+                </span>
+            </a>
+            <nav class="nav" aria-label="Main">
+                ${navLinks}
+            </nav>
+            <div class="header-actions">
+                <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">${ic('moon', 'ic-md').replace('<use ', '<use id="theme-icon" ')}</button>
+                <a href="#builder" class="btn btn-primary btn-sm header-cta">Start free trial</a>
+                <button type="button" id="menu-toggle" class="icon-btn menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">${ic('menu', 'ic-md')}</button>
+            </div>
+        </div>
     </div>
+    <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
+        ${navLinks}
+        <a href="#builder" class="btn btn-primary">Start free trial</a>
+    </nav>
+</header>
 
-    <!-- Main Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/90 dark:bg-servos-darkBg/90 backdrop-blur-md border-b border-slate-200 dark:border-servos-darkBorder">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <a href="#" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center font-heading font-black text-white text-xl shadow-lg">
-                        ${state.brandName.charAt(0)}
-                    </div>
-                    <div>
-                        <span class="font-heading font-black text-lg tracking-wide text-slate-900 dark:text-white block leading-none">${state.brandName}</span>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mt-1">${state.brandTagline}</span>
-                    </div>
-                </a>
+<main id="main">
 
-                <nav class="hidden md:flex items-center space-x-7 text-xs sm:text-sm font-semibold">
-                    <a href="#why-us" class="hover:text-servos-orangeDark transition-colors">Why Us</a>
-                    <a href="#services" class="hover:text-servos-orangeDark transition-colors">Services Flipbook</a>
-                    <a href="#gallery" class="hover:text-servos-orangeDark transition-colors">Placements</a>
-                    <a href="#mixes" class="hover:text-servos-orangeDark transition-colors">Mixes</a>
-                    <a href="#revenue" class="hover:text-servos-orangeDark transition-colors">Revenue Share</a>
-                    <a href="#coverage" class="hover:text-servos-orangeDark transition-colors">Coverage</a>
-                    <a href="#faq" class="hover:text-servos-orangeDark transition-colors">FAQ</a>
-                </nav>
-
-                <div class="flex items-center gap-3">
-                    <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:scale-105 transition-transform">
-                        ${state.heroCtaPrimary}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="py-16 sm:py-24 px-4 max-w-5xl mx-auto text-center space-y-6">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-bold">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Palm Beach County Automated Retail & Amenities</span>
-        </div>
-        
-        <h1 class="font-heading text-4xl sm:text-6xl font-black text-slate-900 dark:text-white leading-tight">
-            ${state.heroTitle1}<br>
-            <span class="grad-text-orange">${state.heroTitle2}</span>
-        </h1>
-        
-        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            ${state.heroSubtitle}
-        </p>
-
-        <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <a href="#builder" class="grad-orange text-white px-8 py-4 rounded-2xl font-extrabold text-base shadow-lg hover:scale-105 transition-transform">
-                ${state.heroCtaPrimary}
-            </a>
-            <a href="tel:${state.contactPhone.replace(/\D/g,'')}" class="bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder px-7 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
-                <i data-lucide="phone" class="h-4 w-4 text-orange-500"></i>
-                <span>Call ${state.contactPhone}</span>
-            </a>
+    <section class="hero">
+        <div class="status-pill"><span class="dot"></span><span>Serving Palm Beach County</span></div>
+        <h1>${esc(state.heroTitle1)}<br><span class="grad-text">${esc(state.heroTitle2)}</span></h1>
+        <p class="lead">${esc(state.heroSubtitle)}</p>
+        <div class="btn-row">
+            <a href="#builder" class="btn btn-primary btn-lg">${esc(state.heroCtaPrimary)}</a>
+            <a href="tel:${phoneDigits}" class="btn btn-ghost btn-lg">${ic('phone')}<span>Call ${esc(state.contactPhone)}</span></a>
         </div>
     </section>
 
-    <!-- RESTORED: WHY CHOOSE US SECTION -->
-    <section id="why-us" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">The Servos Advantage</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.whyUsTitle}</h2>
-                <p class="text-sm text-slate-600 dark:text-slate-400">${state.whyUsSubtitle}</p>
+    <section id="why-us" class="section alt">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Why Servos</span>
+                <h2>${esc(state.whyUsTitle)}</h2>
+                <p class="lead">${esc(state.whyUsSubtitle)}</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                ${state.whyUsItems.map(item => `
-                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
-                            <i data-lucide="${item.icon}" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">${item.title}</h3>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${item.desc}</p>
-                    </div>
-                `).join('')}
+            <div class="grid grid-4">${whyHTML}
             </div>
         </div>
     </section>
 
-    <!-- COMPRESSED INTERACTIVE SERVICES 3D FLIPBOOK & DECK SHOWCASE -->
-    <section id="services" class="py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Interactive Equipment Deck</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Services & Machine Flipbook</h2>
-                <p class="text-xs text-slate-500">Select a category below or flip cards to examine detailed technical specs.</p>
+    <section id="services" class="section">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">What we install</span>
+                <h2>${esc(state.servicesTitle)}</h2>
+                <p class="muted">${esc(state.servicesSubtitle)}</p>
             </div>
-
-            <!-- Category Tab Switcher -->
-            <div class="flex justify-center flex-wrap gap-2">
-                ${state.services.map((s, idx) => `
-                    <button onclick="switchServiceCard(${idx})" id="svc-btn-${idx}" class="svc-tab-btn ${idx === 0 ? 'bg-orange-500 text-white shadow-lg' : 'bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300'} px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                        <span>${s.title}</span>
-                    </button>
-                `).join('')}
+            <div class="tabs" role="tablist" aria-label="Equipment categories">${tabsHTML}
             </div>
-
-            <!-- Active Flip Card Container -->
-            <div class="max-w-4xl mx-auto perspective-1000">
-                ${state.services.map((s, idx) => `
-                    <div id="svc-card-${idx}" class="svc-card-deck ${idx !== 0 ? 'hidden' : ''} flip-card relative w-full">
-                        <div class="flip-card-inner relative w-full min-h-[480px] bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-2xl overflow-hidden">
-                            
-                            <!-- FRONT SIDE OF FLIP CARD -->
-                            <div class="flip-card-front w-full h-full p-6 sm:p-10 flex flex-col md:flex-row gap-8 justify-between items-center">
-                                <div class="w-full md:w-1/2 space-y-4">
-                                    <div class="flex items-center gap-2">
-                                        <span class="bg-orange-500/20 text-orange-500 border border-orange-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase">${s.supplier}</span>
-                                        <span class="text-[10px] text-slate-400 font-mono">Card 0${idx+1} / 0${state.services.length}</span>
-                                    </div>
-
-                                    <h3 class="font-heading font-black text-3xl text-slate-900 dark:text-white">${s.title}</h3>
-                                    <p class="text-xs font-bold text-orange-500 font-mono">${s.sub}</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">${s.desc}</p>
-
-                                    <ul class="space-y-2 text-xs font-semibold pt-1">
-                                        ${s.bullets.map(b => `<li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> ${b}</li>`).join('')}
-                                    </ul>
-
-                                    <div class="pt-4 flex items-center gap-3">
-                                        <button onclick="toggleCardFlip(${idx})" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-300 dark:border-slate-700 transition-colors">
-                                            <i data-lucide="rotate-3d" class="h-4 w-4 text-orange-500"></i>
-                                            <span>Flip for Tech Specs</span>
-                                        </button>
-                                        <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:scale-105 transition-transform">
-                                            Request Placement
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="w-full md:w-1/2 h-64 md:h-80 rounded-2xl overflow-hidden relative shadow-inner group">
-                                    <img src="${s.img}" alt="${s.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Equipment+Showcase'">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                                        <span class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
-                                            Palm Beach Factory Direct Managed
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- BACK SIDE OF FLIP CARD (TECHNICAL SPECS) -->
-                            <div class="flip-card-back absolute inset-0 w-full h-full p-6 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
-                                <div class="space-y-6">
-                                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                                        <div>
-                                            <span class="text-[10px] text-orange-400 font-mono uppercase tracking-widest block">Hardware & Telemetry Architecture</span>
-                                            <h4 class="font-heading font-black text-2xl text-white">${s.title} Specs</h4>
-                                        </div>
-                                        <button onclick="toggleCardFlip(${idx})" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
-                                            <i data-lucide="rotate-3d" class="h-5 w-5 text-orange-400"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Dimensions & Footprint</span>
-                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.dimensions : 'Standard Commercial Footprint'}</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Power & Energy Requirements</span>
-                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.power : 'Standard 115V Outlet'}</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Payment Terminal</span>
-                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.payments : 'Contactless NFC & Apple Pay'}</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Telemetry & Security</span>
-                                            <p class="font-bold text-white">${s.techSpecs ? s.techSpecs.telemetry : '24/7 Remote Inventory Telemetry'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-4 flex justify-between items-center border-t border-slate-800">
-                                    <button onclick="toggleCardFlip(${idx})" class="text-xs font-bold text-orange-400 hover:underline flex items-center gap-1">
-                                        &larr; Back to Front Overview
-                                    </button>
-                                    <a href="#builder" class="grad-orange text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-md">
-                                        Request Equipment Placement
-                                    </a>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                `).join('')}
+            <div class="svc-list">${servicesHTML}
             </div>
-
-            <!-- Flipbook Controls -->
-            <div class="flex justify-center items-center gap-4 pt-2">
-                <button onclick="prevServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
-                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                </button>
-                <span id="svc-deck-indicator" class="text-xs font-mono font-bold text-slate-500">1 / ${state.services.length}</span>
-                <button onclick="nextServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
-                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
-                </button>
+            <div class="deck-nav">
+                <button type="button" id="svc-prev" class="round" aria-label="Previous machine">${ic('left', 'ic-md')}</button>
+                <span id="svc-count" class="deck-count" aria-live="polite">1 / ${services.length}</span>
+                <button type="button" id="svc-next" class="round" aria-label="Next machine">${ic('right', 'ic-md')}</button>
             </div>
         </div>
     </section>
 
-    <!-- RESTORED: GALLERY SECTION -->
-    <section id="gallery" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Venue Showcase</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.galleryTitle}</h2>
-                <p class="text-sm text-slate-600 dark:text-slate-400">${state.gallerySubtitle}</p>
+    <section id="venues" class="section alt">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Who it's for</span>
+                <h2>${esc(state.galleryTitle)}</h2>
+                <p class="lead">${esc(state.gallerySubtitle)}</p>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                ${state.galleryImages.map(img => `
-                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="${img.img}" alt="${img.title}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
-                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
-                                ${img.category}
-                            </span>
-                        </div>
-                        <div class="p-5 space-y-2">
-                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">${img.title}</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">${img.caption}</p>
-                        </div>
-                    </div>
-                `).join('')}
+            <div class="grid grid-4">${galleryHTML}
             </div>
         </div>
     </section>
 
-    <!-- DAY & NIGHT MIXES SECTION -->
-    <section id="mixes" class="py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Tailored Curation</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Daytime Mix vs. Nighttime Mix</h2>
+    <section id="mixes" class="section">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Stocked for your crowd</span>
+                <h2>${esc(state.mixesTitle)}</h2>
+                <p class="lead">${esc(state.mixesSubtitle)}</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Daytime Mix -->
-                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-heading font-black text-2xl text-amber-500">${state.dayMixTitle}</h3>
-                        <i data-lucide="sun" class="h-6 w-6 text-amber-500"></i>
-                    </div>
-                    <p class="text-sm text-slate-600 dark:text-slate-300">${state.dayMixDesc}</p>
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        ${state.dayMixItems.map(item => `
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> ${item}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <!-- Nighttime Mix -->
-                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-heading font-black text-2xl text-purple-400">${state.nightMixTitle}</h3>
-                        <i data-lucide="moon" class="h-6 w-6 text-purple-400"></i>
-                    </div>
-                    <p class="text-sm text-slate-600 dark:text-slate-300">${state.nightMixDesc}</p>
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        ${state.nightMixItems.map(item => `
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> ${item}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
+            <div class="grid grid-2-lg" style="gap:32px">${mix('day', state.dayMixTitle, state.dayMixDesc, state.dayMixItems, 'sun')}${mix('night', state.nightMixTitle, state.nightMixDesc, state.nightMixItems, 'moon')}
             </div>
         </div>
     </section>
 
-    <!-- REVENUE SPLIT SECTION -->
-    <section id="revenue" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-5xl mx-auto px-4 space-y-8 text-center">
-            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.revTitle}</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">${state.revSubtitle}</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">1</div>
-                    <h4 class="font-heading font-bold text-lg">30-Day Risk-Free Trial</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep1}</p>
-                </div>
-
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">2</div>
-                    <h4 class="font-heading font-bold text-lg">10% Revenue Share</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep2}</p>
-                </div>
-
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">3</div>
-                    <h4 class="font-heading font-bold text-lg">Flexible Options</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">${state.revStep3}</p>
-                </div>
+    <section id="revenue" class="section alt">
+        <div class="wrap-md center">
+            <div class="section-head">
+                <h2>${esc(state.revTitle)}</h2>
+                <p class="lead">${esc(state.revSubtitle)}</p>
+            </div>
+            <div class="grid grid-3" style="text-align:left">
+                <div class="card"><div class="num">1</div><h3>30-day trial</h3><p>${esc(state.revStep1)}</p></div>
+                <div class="card"><div class="num">2</div><h3>10% back to you</h3><p>${esc(state.revStep2)}</p></div>
+                <div class="card"><div class="num">3</div><h3>Flexible options</h3><p>${esc(state.revStep3)}</p></div>
             </div>
         </div>
     </section>
 
-    <!-- COVERAGE AREA SECTION -->
-    <section id="coverage" class="py-16">
-        <div class="max-w-5xl mx-auto px-4 text-center space-y-6">
-            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">${state.coverageTitle}</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">${state.coverageDesc}</p>
-            
-            <div class="flex flex-wrap justify-center gap-2 pt-2">
-                ${state.cities.map(c => `<span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">${c}</span>`).join('')}
-            </div>
+    <section id="coverage" class="section">
+        <div class="wrap-md center stack">
+            <h2>${esc(state.coverageTitle)}</h2>
+            <p class="lead" style="max-width:640px;margin-left:auto;margin-right:auto">${esc(state.coverageDesc)}</p>
+            <ul class="cities">${(state.cities || []).map((c) => `<li>${esc(c)}</li>`).join('')}</ul>
         </div>
     </section>
 
-    <!-- FORM REQUEST BUILDER -->
-    <section id="builder" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-3xl mx-auto px-4">
-            <div class="bg-white dark:bg-servos-darkCard p-8 rounded-3xl border border-slate-200 dark:border-servos-darkBorder space-y-6 shadow-xl">
-                <div class="text-center space-y-2">
-                    <h2 class="font-heading text-2xl font-black">Request Placement Trial</h2>
-                    <p class="text-xs text-slate-500">Submit your venue request in under 60 seconds.</p>
+    <section id="builder" class="section alt">
+        <div class="wrap">
+            <div class="form-card">
+                <div class="center stack">
+                    <h2>${esc(state.formTitle)}</h2>
+                    <p class="muted" style="font-size:14px">${esc(state.formSubtitle)}</p>
                 </div>
-
-                <form action="${state.formspreeUrl}" method="POST" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <form action="${esc(state.formspreeUrl)}" method="POST" class="stack">
+                    <input type="hidden" name="_subject" value="New ${name} placement request">
+                    <div class="honey" aria-hidden="true"><input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></div>
+                    <div class="fields">
+                        <div><label for="f-name">Your name *</label><input id="f-name" type="text" name="full_name" autocomplete="name" required></div>
+                        <div><label for="f-email">Email *</label><input id="f-email" type="email" name="email" autocomplete="email" required></div>
+                        <div><label for="f-phone">Phone *</label><input id="f-phone" type="tel" name="phone" autocomplete="tel" required></div>
+                        <div><label for="f-venue">Venue or business name *</label><input id="f-venue" type="text" name="property_name" autocomplete="organization" required></div>
                         <div>
-                            <label class="block text-xs font-bold mb-1">Your Name *</label>
-                            <input type="text" name="full_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                            <label for="f-type">What kind of place is it?</label>
+                            <select id="f-type" name="venue_type">
+                                <option value="">Select one</option>
+                                <option>Residential / apartments</option><option>Bar / nightlife</option><option>Gym / wellness</option><option>Office / workplace</option><option>Family entertainment</option><option>Golf course / club</option><option>Other</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-1">Work Email *</label>
-                            <input type="email" name="email" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Phone *</label>
-                            <input type="tel" name="phone" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Venue / Business Name *</label>
-                            <input type="text" name="property_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                            <label for="f-service">What interests you?</label>
+                            <select id="f-service" name="interested_in"><option value="">Not sure yet</option>${serviceOptions}<option>More than one</option></select>
                         </div>
                     </div>
-
-                    <button type="submit" class="w-full grad-orange text-white py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.01] transition-transform">
-                        ${state.formSubmitBtnText}
-                    </button>
+                    <div><label for="f-msg">Anything we should know? (optional)</label><textarea id="f-msg" name="message" rows="3"></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-block">${esc(state.formSubmitBtnText)}</button>
+                    <p class="fine">We only use your details to get back to you.</p>
                 </form>
             </div>
         </div>
     </section>
 
-    <!-- FAQ SECTION -->
-    <section id="faq" class="py-16">
-        <div class="max-w-4xl mx-auto px-4 space-y-8">
-            <h2 class="font-heading text-3xl font-black text-center">Frequently Asked Questions</h2>
-            <div class="space-y-3">
-                ${state.faqs.map((f, i) => `
-                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
-                        <button type="button" onclick="toggleFaq(${i})" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
-                            <span>${f.q}</span>
-                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </div>
-                        </button>
-                        <div class="faq-content">
-                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">${f.a}</p>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
+    <section id="faq" class="section">
+        <div class="wrap-sm">
+            <h2 class="center" style="margin-bottom:32px">${esc(state.faqTitle)}</h2>${faqHTML}
         </div>
     </section>
 
-    <footer class="bg-slate-950 text-slate-400 py-10 text-xs border-t border-slate-800 text-center space-y-2">
-        <p>&copy; ${new Date().getFullYear()} ${state.brandName}. All rights reserved.</p>
-        <p>Contact: ${state.contactPhone} | ${state.contactEmail}</p>
-    </footer>
+</main>
 
-    <script>
-        let currentSvcCard = 0;
-        const totalSvcCards = ${state.services.length};
+<footer class="site-footer">
+    <p>&copy; ${new Date().getFullYear()} ${name}. All rights reserved.</p>
+    <p><a href="tel:${phoneDigits}">${esc(state.contactPhone)}</a> | <a href="mailto:${esc(state.contactEmail)}">${esc(state.contactEmail)}</a></p>
+</footer>
 
-        function switchServiceCard(index) {
-            currentSvcCard = index;
-            document.querySelectorAll('.svc-card-deck').forEach((el, i) => {
-                if (i === index) el.classList.remove('hidden');
-                else {
-                    el.classList.add('hidden');
-                    el.classList.remove('flipped');
-                }
-            });
+<script>
+(function () {
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
-            document.querySelectorAll('.svc-tab-btn').forEach((btn, i) => {
-                if (i === index) {
-                    btn.className = "svc-tab-btn bg-orange-500 text-white shadow-lg px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
-                } else {
-                    btn.className = "svc-tab-btn bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
-                }
-            });
+    /* Machine tabs + arrows */
+    var cards = $$('.svc'), tabs = $$('.tab'), cur = 0;
+    function show(i) {
+        cur = (i + cards.length) % cards.length;
+        cards.forEach(function (c, n) { c.classList.toggle('active', n === cur); });
+        tabs.forEach(function (t, n) { t.setAttribute('aria-selected', n === cur ? 'true' : 'false'); });
+        $('#svc-count').textContent = (cur + 1) + ' / ' + cards.length;
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(+t.getAttribute('data-i')); }); });
+    $('#svc-prev').addEventListener('click', function () { show(cur - 1); });
+    $('#svc-next').addEventListener('click', function () { show(cur + 1); });
 
-            document.getElementById('svc-deck-indicator').innerText = (index + 1) + " / " + totalSvcCards;
-        }
+    /* "Request Placement" pre-selects the form */
+    $$('[data-pick]').forEach(function (a) {
+        a.addEventListener('click', function () { $('#f-service').value = a.getAttribute('data-pick'); });
+    });
 
-        function nextServiceCard() {
-            let next = (currentSvcCard + 1) % totalSvcCards;
-            switchServiceCard(next);
-        }
+    /* Mobile menu */
+    var mbtn = $('#menu-toggle'), menu = $('#mobile-menu');
+    function closeMenu() { menu.classList.remove('open'); mbtn.setAttribute('aria-expanded', 'false'); }
+    mbtn.addEventListener('click', function () {
+        var open = menu.classList.toggle('open');
+        mbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    $$('#mobile-menu a').forEach(function (a) { a.addEventListener('click', closeMenu); });
 
-        function prevServiceCard() {
-            let prev = (currentSvcCard - 1 + totalSvcCards) % totalSvcCards;
-            switchServiceCard(prev);
-        }
-
-        function toggleCardFlip(index) {
-            const card = document.getElementById('svc-card-' + index);
-            if (card) card.classList.toggle('flipped');
-        }
-
-        function toggleFaq(index) {
-            const cards = document.querySelectorAll('.faq-card');
-            cards.forEach((card, i) => {
-                if (i === index) card.classList.toggle('active');
-                else card.classList.remove('active');
-            });
-        }
-
-        window.onload = function() { lucide.createIcons(); }
-    <\/script>
+    /* Theme toggle (follows device setting until the visitor chooses) */
+    var root = document.documentElement, icon = $('#theme-icon');
+    function isDark() {
+        var t = root.getAttribute('data-theme');
+        return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function syncIcon() { icon.setAttribute('href', isDark() ? '#i-sun' : '#i-moon'); }
+    $('#theme-toggle').addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('servos-theme', next); } catch (e) {}
+        syncIcon();
+    });
+    syncIcon();
+})();
+<\/script>
 </body>
 </html>`;
         }
-  function renderIframePreview() {
+
+
+function renderPreview() {
     const html = generateStandaloneHTML();
-    const iframe = document.getElementById('live-iframe');
-    if (iframe) iframe.srcdoc = html;
-    const sourceArea = document.getElementById('source-code-area');
-    if (sourceArea) sourceArea.value = html;
-  }
+    const frame = $('#live-iframe');
+    let y = 0;
+    try { y = frame.contentWindow.scrollY || 0; } catch (e) {}
+    frame.onload = function () {
+        try { frame.contentWindow.scrollTo({ top: y, behavior: 'instant' }); } catch (e) {}
+        frame.onload = null;
+    };
+    frame.srcdoc = html;
+    $('#source-code-area').value = html;
+}
 
-        function populateFormInputs() {
-            document.getElementById('cfg-promoText').value = state.promoText;
-            document.getElementById('cfg-brandName').value = state.brandName;
-            document.getElementById('cfg-brandTagline').value = state.brandTagline;
-            document.getElementById('cfg-heroTitle1').value = state.heroTitle1;
-            document.getElementById('cfg-heroTitle2').value = state.heroTitle2;
-            document.getElementById('cfg-heroSubtitle').value = state.heroSubtitle;
-            document.getElementById('cfg-heroCtaPrimary').value = state.heroCtaPrimary;
-            document.getElementById('cfg-contactPhone').value = state.contactPhone;
-            document.getElementById('cfg-contactEmail').value = state.contactEmail;
+/* ------------------------------------------------------------------
+   EDITOR FORMS
+------------------------------------------------------------------- */
+function populateSimpleFields() {
+    $$('[data-key]').forEach((el) => { el.value = state[el.dataset.key] == null ? '' : state[el.dataset.key]; });
+    $$('[data-csv]').forEach((el) => { el.value = (state[el.dataset.csv] || []).join(', '); });
+}
 
-            document.getElementById('cfg-whyUsTitle').value = state.whyUsTitle || "";
-            document.getElementById('cfg-whyUsSubtitle').value = state.whyUsSubtitle || "";
+function field(label, control) { return '<div class="field"><label>' + label + '</label>' + control + '</div>'; }
+function input(list, i, prop, val, ph) {
+    return '<input type="text" data-list="' + list + '" data-i="' + i + '" data-prop="' + prop + '" value="' + esc(val) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>';
+}
+function textarea(list, i, prop, val, rows, attrs) {
+    return '<textarea rows="' + (rows || 2) + '" data-list="' + list + '" data-i="' + i + '" data-prop="' + prop + '"' + (attrs || '') + '>' + esc(val) + '</textarea>';
+}
+function itemHeader(label, removeAction, i) {
+    return '<div class="item-head"><span>' + label + '</span>' +
+        (removeAction ? '<button type="button" class="icon-btn danger" data-action="' + removeAction + '" data-i="' + i + '" aria-label="Remove">' + icon('trash') + '</button>' : '') + '</div>';
+}
 
-            document.getElementById('cfg-galleryTitle').value = state.galleryTitle || "";
-            document.getElementById('cfg-gallerySubtitle').value = state.gallerySubtitle || "";
+function renderWhyList() {
+    $('#whyus-list').innerHTML = (state.whyUsItems || []).map((w, i) =>
+        '<div class="item">' + itemHeader('Point ' + (i + 1)) +
+        field('Title', input('whyUsItems', i, 'title', w.title)) +
+        field('Description', textarea('whyUsItems', i, 'desc', w.desc)) + '</div>').join('');
+}
 
-            document.getElementById('cfg-dayMixTitle').value = state.dayMixTitle;
-            document.getElementById('cfg-dayMixDesc').value = state.dayMixDesc;
-            document.getElementById('cfg-dayMixItems').value = state.dayMixItems.join(', ');
+function renderServicesList() {
+    $('#services-list').innerHTML = (state.services || []).map((s, i) => {
+        const specs = Object.keys(s.techSpecs || {}).map((k) => prettyKey(k) + ': ' + s.techSpecs[k]).join('\n');
+        return '<div class="item">' + itemHeader('Machine ' + (i + 1), 'remove-service', i) +
+            '<div class="row2">' + field('Supplier', input('services', i, 'supplier', s.supplier)) + field('Title', input('services', i, 'title', s.title)) + '</div>' +
+            field('Tagline', input('services', i, 'sub', s.sub)) +
+            field('Description', textarea('services', i, 'desc', s.desc, 3)) +
+            field('Highlights (one per line)', textarea('services', i, 'bullets', (s.bullets || []).join('\n'), 3, ' data-mode="lines"')) +
+            field('Specs (one per line, "Label: value")', textarea('services', i, 'techSpecs', specs, 4, ' data-mode="specs"')) +
+            field('Photo (optional, e.g. images/cooler.jpg)', input('services', i, 'img', s.img, 'Leave blank to show an icon')) + '</div>';
+    }).join('');
+}
 
-            document.getElementById('cfg-nightMixTitle').value = state.nightMixTitle;
-            document.getElementById('cfg-nightMixDesc').value = state.nightMixDesc;
-            document.getElementById('cfg-nightMixItems').value = state.nightMixItems.join(', ');
+function renderGalleryList() {
+    $('#gallery-list').innerHTML = (state.galleryImages || []).map((g, i) =>
+        '<div class="item">' + itemHeader('Venue ' + (i + 1), 'remove-gallery', i) +
+        '<div class="row2">' + field('Title', input('galleryImages', i, 'title', g.title)) + field('Tag', input('galleryImages', i, 'category', g.category)) + '</div>' +
+        field('Caption', textarea('galleryImages', i, 'caption', g.caption)) +
+        field('Photo (optional, e.g. images/gym.jpg)', input('galleryImages', i, 'img', g.img, 'Leave blank to show an icon')) + '</div>').join('');
+}
 
-            document.getElementById('cfg-revTitle').value = state.revTitle;
-            document.getElementById('cfg-revSubtitle').value = state.revSubtitle;
-            document.getElementById('cfg-revStep1').value = state.revStep1;
-            document.getElementById('cfg-revStep2').value = state.revStep2;
-            document.getElementById('cfg-revStep3').value = state.revStep3;
+function renderFaqList() {
+    $('#faq-list').innerHTML = (state.faqs || []).map((f, i) =>
+        '<div class="item">' + itemHeader('Question ' + (i + 1), 'remove-faq', i) +
+        field('Question', input('faqs', i, 'q', f.q)) +
+        field('Answer', textarea('faqs', i, 'a', f.a, 3)) + '</div>').join('');
+}
 
-            document.getElementById('cfg-coverageTitle').value = state.coverageTitle;
-            document.getElementById('cfg-coverageDesc').value = state.coverageDesc;
-            document.getElementById('cfg-citiesList').value = state.cities.join(', ');
+function renderAllForms() {
+    populateSimpleFields();
+    renderWhyList();
+    renderServicesList();
+    renderGalleryList();
+    renderFaqList();
+}
 
-            document.getElementById('cfg-formspreeUrl').value = state.formspreeUrl;
-            document.getElementById('cfg-formSubmitBtnText').value = state.formSubmitBtnText;
-        }
+function parseSpecs(text) {
+    const out = {};
+    splitLines(text).forEach((line) => {
+        const idx = line.indexOf(':');
+        if (idx < 1) return;
+        const key = line.slice(0, idx).trim();
+        const val = line.slice(idx + 1).trim();
+        if (key && val) out[key] = val;
+    });
+    return out;
+}
 
-        // Render Why Choose Us List Editor
-        function renderWhyUsList() {
-            const container = document.getElementById('whyus-list-container');
-            if (!state.whyUsItems) return;
-            container.innerHTML = state.whyUsItems.map((item, index) => `
-                <div class="bg-studio-bg p-3.5 rounded-2xl border border-studio-border space-y-2">
-                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-1.5">
-                        <span class="font-bold text-[11px] text-orange-400">Pillar #${index + 1}</span>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Title</label>
-                        <input type="text" value="${item.title}" oninput="updateWhyUsProp(${index}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Description</label>
-                        <textarea rows="2" oninput="updateWhyUsProp(${index}, 'desc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${item.desc}</textarea>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+function onSidebarInput(e) {
+    const t = e.target;
+    if (t.dataset.key) {
+        state[t.dataset.key] = t.value;
+    } else if (t.dataset.csv) {
+        state[t.dataset.csv] = splitCsv(t.value);
+    } else if (t.dataset.list) {
+        const item = state[t.dataset.list][+t.dataset.i];
+        if (!item) return;
+        if (t.dataset.mode === 'lines') item[t.dataset.prop] = splitLines(t.value);
+        else if (t.dataset.mode === 'specs') item[t.dataset.prop] = parseSpecs(t.value);
+        else item[t.dataset.prop] = t.value;
+    } else {
+        return;
+    }
+    saveState();
+}
 
-        function updateWhyUsProp(index, prop, val) {
-            state.whyUsItems[index][prop] = val;
-            saveState();
-        }
+function onAction(action, el) {
+    const i = +el.dataset.i;
+    switch (action) {
+        case 'tab': switchTab(el.dataset.tab, el); break;
+        case 'mode': setViewMode(el.dataset.mode); break;
+        case 'device': setDevice(el.dataset.device); break;
+        case 'reload': renderPreview(); toast('Preview reloaded'); break;
+        case 'export': exportHTML(); break;
+        case 'copy': copySource(); break;
+        case 'reset': resetState(); break;
+        case 'open-publish': openPublish(); break;
+        case 'close-publish': closePublish(); break;
+        case 'publish': publishToGitHub(); break;
+        case 'add-service':
+            state.services.push({ id: Date.now(), supplier: 'Supplier name', title: 'New machine', sub: 'What it offers', desc: 'A short description of this machine and why venues like it.', bullets: ['First highlight', 'Second highlight'], img: '', techSpecs: { dimensions: '', power: '' } });
+            saveState(); renderServicesList(); break;
+        case 'remove-service': state.services.splice(i, 1); saveState(); renderServicesList(); break;
+        case 'add-gallery':
+            state.galleryImages.push({ title: 'New venue type', category: 'Venue', img: '', caption: 'A sentence about how our machines fit this kind of place.' });
+            saveState(); renderGalleryList(); break;
+        case 'remove-gallery': state.galleryImages.splice(i, 1); saveState(); renderGalleryList(); break;
+        case 'add-faq':
+            state.faqs.push({ q: 'New question?', a: 'Answer goes here.' });
+            saveState(); renderFaqList(); break;
+        case 'remove-faq': state.faqs.splice(i, 1); saveState(); renderFaqList(); break;
+    }
+}
 
-        // Render Dynamic Services Flipbook Cards Editor
-        function renderServicesList() {
-            const container = document.getElementById('services-list-container');
-            container.innerHTML = state.services.map((s, index) => `
-                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3 relative">
-                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
-                        <span class="font-bold text-xs text-orange-400">Service Deck Card #${index + 1}</span>
-                        <button onclick="removeServiceItem(${s.id})" class="text-slate-500 hover:text-red-400 p-1">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Supplier Tag</label>
-                            <input type="text" value="${s.supplier}" oninput="updateServiceProp(${s.id}, 'supplier', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Card Title</label>
-                            <input type="text" value="${s.title}" oninput="updateServiceProp(${s.id}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Photo Image URL</label>
-                        <input type="text" value="${s.img || ''}" oninput="updateServiceProp(${s.id}, 'img', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Description Overview</label>
-                        <textarea rows="2" oninput="updateServiceProp(${s.id}, 'desc', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${s.desc}</textarea>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+function switchTab(id, btn) {
+    $$('.tab-content').forEach((el) => { el.hidden = el.id !== id; });
+    $$('.editor-tab').forEach((b) => { b.classList.toggle('active', b === btn); b.setAttribute('aria-selected', b === btn ? 'true' : 'false'); });
+}
 
-        function updateServiceProp(id, prop, val) {
-            const item = state.services.find(x => x.id === id);
-            if (item) {
-                item[prop] = val;
-                saveState();
-            }
-        }
+function setViewMode(mode) {
+    document.body.setAttribute('data-mode', mode);
+    $$('[data-action="mode"]').forEach((b) => b.classList.toggle('active', b.dataset.mode === mode));
+}
 
-        function addServiceItem() {
-            const newId = Date.now();
-            state.services.push({
-                id: newId,
-                supplier: "Custom Vendor",
-                supplierColor: "orange",
-                title: "New Automated Equipment",
-                sub: "Custom Retail Line",
-                desc: "High quality automated equipment supplied and managed for your venue.",
-                bullets: ["24/7 Smart Telemetry", "Contactless Payments", "Full Restocking Service"],
-                img: "https://images.unsplash.com/photo-1575224300306-1b8da36134ec?auto=format&fit=crop&w=800&q=80",
-                techSpecs: {
-                    dimensions: "Commercial Footprint",
-                    power: "Standard 115V Outlet",
-                    payments: "Contactless NFC & Cards",
-                    telemetry: "24/7 Cellular Telemetry"
-                }
-            });
-            saveState();
-            renderServicesList();
-        }
+function setDevice(type) {
+    const box = $('#preview-viewport');
+    const label = $('#viewport-size-indicator');
+    $$('[data-action="device"]').forEach((b) => b.classList.toggle('active', b.dataset.device === type));
+    box.setAttribute('data-device', type);
+    label.textContent = type === 'desktop' ? 'Full width' : type === 'tablet' ? '768 px tablet' : '375 px phone';
+}
 
-        function removeServiceItem(id) {
-            state.services = state.services.filter(s => s.id !== id);
-            saveState();
-            renderServicesList();
-        }
+function resetState() {
+    if (!window.confirm('Reset every edit back to the original defaults?')) return;
+    state = clone(DEFAULT_STATE);
+    persist();
+    renderAllForms();
+    saveState();
+    toast('Reset to defaults');
+}
 
-        // Render Gallery Items List Editor
-        function renderGalleryList() {
-            const container = document.getElementById('gallery-list-container');
-            if (!state.galleryImages) return;
-            container.innerHTML = state.galleryImages.map((img, index) => `
-                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
-                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
-                        <span class="font-bold text-xs text-orange-400">Gallery Photo #${index + 1}</span>
-                        <button onclick="removeGalleryItem(${index})" class="text-slate-500 hover:text-red-400 p-1">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Venue Title</label>
-                            <input type="text" value="${img.title}" oninput="updateGalleryProp(${index}, 'title', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-400 mb-1">Category Tag</label>
-                            <input type="text" value="${img.category}" oninput="updateGalleryProp(${index}, 'category', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Photo Image URL</label>
-                        <input type="text" value="${img.img}" oninput="updateGalleryProp(${index}, 'img', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Caption</label>
-                        <textarea rows="2" oninput="updateGalleryProp(${index}, 'caption', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${img.caption}</textarea>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+/* ------------------------------------------------------------------
+   EXPORT / COPY / PUBLISH
+------------------------------------------------------------------- */
+function exportHTML() {
+    const blob = new Blob([generateStandaloneHTML()], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('Exported index.html');
+}
 
-        function updateGalleryProp(index, prop, val) {
-            state.galleryImages[index][prop] = val;
-            saveState();
-        }
+function copySource() {
+    const area = $('#source-code-area');
+    const done = () => toast('Source code copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(area.value).then(done, () => { area.select(); document.execCommand('copy'); done(); });
+    } else {
+        area.select(); document.execCommand('copy'); done();
+    }
+}
 
-        function addGalleryItem() {
-            state.galleryImages.push({
-                title: "New Placement Location",
-                category: "Hospitality",
-                img: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80",
-                caption: "Description of the equipment installed at this venue."
-            });
-            saveState();
-            renderGalleryList();
-        }
+function getSaved(k) { try { return localStorage.getItem(k) || sessionStorage.getItem(k) || ''; } catch (e) { return ''; } }
 
-        function removeGalleryItem(index) {
-            state.galleryImages.splice(index, 1);
-            saveState();
-            renderGalleryList();
-        }
+function openPublish() {
+    $('#gh-token').value = getSaved('gh_pat');
+    $('#gh-repo').value = getSaved('gh_repo');
+    $('#gh-branch').value = getSaved('gh_branch') || 'main';
+    $('#gh-path').value = getSaved('gh_path') || 'index.html';
+    $('#gh-remember').checked = !!(function () { try { return localStorage.getItem('gh_pat'); } catch (e) { return false; } })();
+    $('#publish-modal').hidden = false;
+    $('#gh-token').focus();
+}
+function closePublish() { $('#publish-modal').hidden = true; }
 
-        // Render FAQ List Editor
-        function renderFaqList() {
-            const container = document.getElementById('faq-list-container');
-            container.innerHTML = state.faqs.map((f, index) => `
-                <div class="bg-studio-bg p-4 rounded-2xl border border-studio-border space-y-3">
-                    <div class="flex justify-between items-center border-b border-studio-border/50 pb-2">
-                        <span class="font-bold text-xs text-orange-400">FAQ #${index + 1}</span>
-                        <button onclick="removeFaqItem(${index})" class="text-slate-500 hover:text-red-400 p-1">
-                            <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
-                        </button>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Question</label>
-                        <input type="text" value="${f.q}" oninput="updateFaqProp(${index}, 'q', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 mb-1">Answer</label>
-                        <textarea rows="2" oninput="updateFaqProp(${index}, 'a', this.value)" class="w-full bg-studio-card border border-studio-border rounded-lg p-2 text-xs text-white focus:outline-none">${f.a}</textarea>
-                    </div>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
+function toBase64(text) {
+    const bytes = new TextEncoder().encode(text);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+}
 
-        function updateFaqProp(index, prop, val) {
-            state.faqs[index][prop] = val;
-            saveState();
-        }
+async function publishToGitHub() {
+    const token = $('#gh-token').value.trim();
+    const repo = $('#gh-repo').value.trim();
+    const branch = $('#gh-branch').value.trim() || 'main';
+    const path = $('#gh-path').value.trim() || 'index.html';
+    const message = $('#gh-commit').value.trim() || 'Update website content via Servos Studio';
+    const btn = $('#gh-submit-btn');
 
-        function addFaqItem() {
-            state.faqs.push({
-                q: "New Question Title?",
-                a: "Detailed explanation or response answer goes here."
-            });
-            saveState();
-            renderFaqList();
-        }
+    if (!token || !repo) { toast('Enter a GitHub token and a repo name (owner/repo).'); return; }
 
-        function removeFaqItem(index) {
-            state.faqs.splice(index, 1);
-            saveState();
-            renderFaqList();
-        }
+    try {
+        const remember = $('#gh-remember').checked;
+        sessionStorage.setItem('gh_pat', token);
+        if (remember) localStorage.setItem('gh_pat', token); else localStorage.removeItem('gh_pat');
+        localStorage.setItem('gh_repo', repo);
+        localStorage.setItem('gh_branch', branch);
+        localStorage.setItem('gh_path', path);
+    } catch (e) {}
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.editor-tab').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.remove('hidden');
-            event.currentTarget.classList.add('active');
-        }
+    btn.disabled = true;
+    btn.textContent = 'Publishing...';
+    const headers = { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' };
+    const apiPath = repo + '/contents/' + path.split('/').map(encodeURIComponent).join('/');
 
-        function setViewMode(mode) {
-            const sidebar = document.getElementById('editor-sidebar');
-            const previewWrapper = document.getElementById('preview-wrapper');
-            const codeWrapper = document.getElementById('code-wrapper');
-            const previewToolbar = document.getElementById('preview-toolbar');
+    try {
+        let sha = null;
+        const check = await fetch('https://api.github.com/repos/' + apiPath + '?ref=' + encodeURIComponent(branch), { headers: headers });
+        if (check.ok) sha = (await check.json()).sha;
 
-            document.getElementById('btn-mode-split').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
-            document.getElementById('btn-mode-preview').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
-            document.getElementById('btn-mode-code').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+        const body = { message: message, content: toBase64(generateStandaloneHTML()), branch: branch };
+        if (sha) body.sha = sha;
 
-            if (mode === 'split') {
-                sidebar.classList.remove('hidden');
-                sidebar.className = "w-full md:w-[480px] lg:w-[520px] bg-studio-card border-r border-studio-border flex flex-col h-full shrink-0 z-20";
-                previewWrapper.classList.remove('hidden');
-                previewToolbar.classList.remove('hidden');
-                codeWrapper.classList.add('hidden');
-                document.getElementById('btn-mode-split').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
-            } else if (mode === 'preview') {
-                sidebar.classList.add('hidden');
-                previewWrapper.classList.remove('hidden');
-                previewToolbar.classList.remove('hidden');
-                codeWrapper.classList.add('hidden');
-                document.getElementById('btn-mode-preview').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
-            } else if (mode === 'code') {
-                sidebar.classList.add('hidden');
-                previewWrapper.classList.add('hidden');
-                previewToolbar.classList.add('hidden');
-                codeWrapper.classList.remove('hidden');
-                document.getElementById('btn-mode-code').className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 bg-blue-600 text-white shadow-sm";
-            }
-        }
+        const put = await fetch('https://api.github.com/repos/' + apiPath, {
+            method: 'PUT',
+            headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+            body: JSON.stringify(body)
+        });
 
-        function setDevice(type) {
-            const container = document.getElementById('preview-viewport-container');
-            const indicator = document.getElementById('viewport-size-indicator');
-            
-            document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('device-' + type).classList.add('active');
+        if (put.ok) { toast('Published. Your site will update in a minute or two.'); closePublish(); }
+        else { const err = await put.json().catch(() => ({})); toast('GitHub error: ' + (err.message || put.status)); }
+    } catch (err) {
+        toast('Network error while contacting GitHub.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Commit & deploy';
+    }
+}
 
-            if (type === 'desktop') {
-                container.style.width = '100%';
-                container.style.height = '100%';
-                indicator.innerText = "100% Fluid Desktop";
-            } else if (type === 'tablet') {
-                container.style.width = '768px';
-                container.style.height = '100%';
-                indicator.innerText = "768px Tablet Frame";
-            } else if (type === 'mobile') {
-                container.style.width = '375px';
-                container.style.height = '667px';
-                indicator.innerText = "375px Mobile Frame";
-            }
-        }
+function toast(msg) {
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    $('#toast-container').appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3200);
+}
 
-        function refreshIframe() {
-            renderIframePreview();
-            showToast("Preview reloaded");
-        }
+/* ------------------------------------------------------------------
+   START
+------------------------------------------------------------------- */
+document.addEventListener('DOMContentLoaded', function () {
+    loadState();
+    renderAllForms();
+    $('#editor-sidebar').addEventListener('input', onSidebarInput);
+    document.addEventListener('click', function (e) {
+        const el = e.target.closest('[data-action]');
+        if (el) onAction(el.dataset.action, el);
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('#publish-modal').hidden) closePublish(); });
+    renderPreview();
+});
 
-        function copySourceCode() {
-            const textarea = document.getElementById('source-code-area');
-            textarea.select();
-            document.execCommand('copy');
-            showToast("Source code copied to clipboard!");
-        }
+})();
 
-        function exportHTML() {
-            const html = generateStandaloneHTML();
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'servos-vending-website.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast("Exported servos-vending-website.html");
-        }
-
-        function openPublishModal() {
-            document.getElementById('publish-modal').classList.remove('hidden');
-            if(localStorage.getItem('gh_pat')) document.getElementById('gh-token').value = localStorage.getItem('gh_pat');
-            if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
-        }
-
-        function closePublishModal() {
-            document.getElementById('publish-modal').classList.add('hidden');
-        }
-
-        async function executeGitHubCommit() {
-            const token = document.getElementById('gh-token').value.trim();
-            const repo = document.getElementById('gh-repo').value.trim();
-            const branch = document.getElementById('gh-branch').value.trim() || 'main';
-            const path = document.getElementById('gh-path').value.trim() || 'index.html';
-            const message = document.getElementById('gh-commit').value.trim() || 'Update via Servos Studio';
-            const btn = document.getElementById('gh-submit-btn');
-
-            if (!token || !repo) {
-                showToast("Please enter both GitHub Token & Repo Name!");
-                return;
-            }
-
-            localStorage.setItem('gh_pat', token);
-            localStorage.setItem('gh_repo', repo);
-
-            btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i> <span>Publishing...</span>`;
-            lucide.createIcons();
-
-            try {
-                const fileUrl = `https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`;
-                let sha = null;
-                
-                const checkRes = await fetch(fileUrl, {
-                    headers: { 'Authorization': `token ${token}` }
-                });
-
-                if (checkRes.ok) {
-                    const fileData = await checkRes.json();
-                    sha = fileData.sha;
-                }
-
-                const htmlContent = generateStandaloneHTML();
-                const encoder = new TextEncoder();
-                const data = encoder.encode(htmlContent);
-                let binary = '';
-                for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
-                const base64Content = btoa(binary);
-
-                const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        content: base64Content,
-                        branch: branch,
-                        ...(sha && { sha: sha })
-                    })
-                });
-
-                if (putRes.ok) {
-                    showToast("Published successfully to GitHub! Netlify build triggered.");
-                    closePublishModal();
-                } else {
-                    const err = await putRes.json();
-                    showToast("GitHub Error: " + (err.message || "Failed to commit"));
-                }
-            } catch (err) {
-                showToast("Network error trying to commit to GitHub.");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="git-commit" class="h-4 w-4"></i> <span>Commit & Deploy</span>`;
-                lucide.createIcons();
-            }
-        }
-
-        function showToast(msg) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = "toast-animate bg-studio-card border border-orange-500/40 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 pointer-events-auto";
-            toast.innerHTML = `<i data-lucide="info" class="h-4 w-4 text-orange-400 shrink-0"></i> <span>${msg}</span>`;
-            container.appendChild(toast);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        window.onload = function() {
-            loadSavedState();
-            populateFormInputs();
-            renderWhyUsList();
-            renderServicesList();
-            renderGalleryList();
-            renderFaqList();
-            renderIframePreview();
-            lucide.createIcons();
-        };
-    </script>
+</script>
 </body>
 </html>

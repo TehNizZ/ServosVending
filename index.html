@@ -1,817 +1,667 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SERVOS VENDING | Automated Retail & Amenities in Palm Beach County</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-
+    <title>SERVOS VENDING | Vending &amp; Amenities in Palm Beach County</title>
+    <meta name="description" content="Smart coolers, phone charging stations and trading card kiosks for Palm Beach County venues. We install and run everything at no cost to you.">
+    <meta property="og:title" content="SERVOS VENDING | Vending &amp; Amenities in Palm Beach County">
+    <meta property="og:description" content="Smart coolers, phone charging stations and trading card kiosks for Palm Beach County venues. We install and run everything at no cost to you.">
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#0f1014">
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        heading: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        servos: {
-                            orange: '#ffbe55',
-                            orangeDark: '#ff773d',
-                            orangeHover: '#e05d25',
-                            darkBg: '#0f1014',
-                            darkCard: '#1a1b23',
-                            darkBorder: '#2a2b36'
-                        }
-                    }
-                }
-            }
-        }
+        (function () {
+            var d = document.documentElement;
+            d.className += ' js';
+            try { var t = localStorage.getItem('servos-theme'); if (t) d.setAttribute('data-theme', t); } catch (e) {}
+        })();
     </script>
-
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f1014; }
-        ::-webkit-scrollbar-thumb { background: #2a2b36; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff773d; }
-        .grad-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); }
-        .grad-text-orange { background: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        /* 3D Flip Card Deck CSS */
-        .perspective-1000 { perspective: 1000px; }
-        .flip-card-inner {
-            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d;
-        }
-        .flip-card.flipped .flip-card-inner {
-            transform: rotateY(180deg);
-        }
-        .flip-card-front, .flip-card-back {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .flip-card-back {
-            transform: rotateY(180deg);
-        }
+/* Servos Vending - static stylesheet. No frameworks, no external fonts. */
 
-        .faq-content { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; }
-        .faq-card.active .faq-content { max-height: 400px; opacity: 1; }
-        .faq-icon { transition: transform 0.3s ease; }
-        .faq-card.active .faq-icon { transform: rotate(180deg); }
+:root {
+  --orange: #ffbe55;
+  --orange-dark: #ff773d;
+  --orange-text: #c2500f;
+  --grad: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%);
+
+  --bg: #f8fafc;
+  --bg-alt: #f1f5f9;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #475569;
+  --chip: #e2e8f0;
+  --field: #f8fafc;
+  --green: #10b981;
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius: 24px;
+  --shadow: 0 4px 14px rgba(15, 23, 42, .08);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, .15);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
+    --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
+    --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
+  --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
+  --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+[id] { scroll-margin-top: 6rem; }
+body { margin: 0; font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.5; transition: background .2s, color .2s; }
+h1, h2, h3, h4, p, ul, dl, dd { margin: 0; }
+ul { padding: 0; list-style: none; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 3px solid var(--orange-dark); outline-offset: 2px; }
+
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.ic-sm { width: 16px; height: 16px; }
+.ic-md { width: 20px; height: 20px; }
+.ic-lg { width: 26px; height: 26px; }
+.hide-in-light { display: none; }
+.skip { position: absolute; left: -9999px; top: 8px; background: #fff; color: #0f172a; padding: 8px 16px; border-radius: 8px; font-weight: 700; z-index: 100; }
+.skip:focus { left: 8px; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+.wrap-md { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+.wrap-sm { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+.center { text-align: center; }
+.section { padding: 64px 0; }
+.section.alt { background: var(--bg-alt); }
+.stack > * + * { margin-top: 14px; }
+.eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.section-head { max-width: 640px; margin: 0 auto 40px; text-align: center; }
+.section-head > * + * { margin-top: 8px; }
+h2 { font-size: 30px; font-weight: 900; line-height: 1.2; }
+h3 { font-weight: 800; }
+.lead { color: var(--muted); font-size: 16px; }
+.muted { color: var(--muted); }
+.grad-text { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-weight: 800; padding: 12px 22px; transition: transform .15s; }
+.btn-primary { background: var(--grad); color: #fff; box-shadow: var(--shadow); }
+.btn-primary:hover { transform: scale(1.04); }
+.btn-ghost { background: var(--card); border: 1px solid var(--border); }
+.btn-lg { padding: 16px 30px; font-size: 16px; }
+.btn-sm { padding: 10px 18px; font-size: 14px; border-radius: 12px; }
+.btn-block { width: 100%; padding: 16px; font-size: 16px; }
+
+/* Announcement bar */
+.announce { background: linear-gradient(90deg, #9333ea, #2563eb); color: #fff; font-weight: 700; font-size: 14px; padding: 10px 16px; text-align: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 99px; font-size: 11px; text-transform: uppercase; font-weight: 800; }
+
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.header-row { display: flex; align-items: center; justify-content: space-between; height: 80px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
+.brand-name { display: block; font-weight: 900; font-size: 18px; letter-spacing: .04em; line-height: 1; }
+.brand-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.nav { display: none; gap: 24px; font-size: 14px; font-weight: 600; }
+.nav a:hover { color: var(--orange-dark); }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.icon-btn { width: 42px; height: 42px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 12px; }
+.icon-btn:hover { background: var(--chip); }
+.header-cta { display: none; }
+.mobile-menu { display: none; border-top: 1px solid var(--border); padding: 10px 20px 16px; font-weight: 600; font-size: 15px; }
+.mobile-menu.open { display: block; }
+.mobile-menu a { display: block; padding: 11px 0; }
+.mobile-menu .btn { color: #fff; margin-top: 8px; }
+@media (min-width: 640px) { .header-cta { display: inline-flex; } }
+@media (min-width: 1024px) { .nav { display: flex; } .menu-btn, .mobile-menu { display: none !important; } }
+
+/* Hero */
+.hero { padding: 80px 20px 72px; max-width: 1000px; margin: 0 auto; text-align: center; }
+.hero > * + * { margin-top: 24px; }
+.status-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--chip); border-radius: 99px; padding: 8px 16px; font-size: 12px; font-weight: 700; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
+.hero h1 { font-size: clamp(36px, 7vw, 62px); font-weight: 900; line-height: 1.1; }
+.hero p.lead { font-size: 18px; max-width: 720px; margin-left: auto; margin-right: auto; }
+.btn-row { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+@media (min-width: 640px) { .btn-row { flex-direction: row; } }
+.checks { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 24px; font-size: 14px; font-weight: 600; color: var(--muted); }
+.checks li { display: flex; align-items: center; gap: 6px; }
+.checks .ic { color: var(--green); }
+
+/* Cards / grids */
+.grid { display: grid; gap: 24px; }
+@media (min-width: 640px) { .grid-2, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 768px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } .grid-2-lg { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.card.hover:hover { border-color: rgba(255, 119, 61, .5); }
+.card > * + * { margin-top: 12px; }
+.card h3 { font-size: 18px; }
+.card p { font-size: 14px; color: var(--muted); }
+.icon-tile { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 119, 61, .12); color: var(--orange-dark); display: grid; place-items: center; }
+.num { width: 32px; height: 32px; border-radius: 10px; background: var(--grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
+
+/* Services */
+.tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
+.tab { padding: 9px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--card); border: 1px solid var(--border); }
+.tab[aria-selected="true"] { background: #f97316; border-color: #f97316; color: #fff; box-shadow: var(--shadow); }
+.svc-list { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
+.js .svc-list .svc { display: none; }
+.js .svc-list .svc.active { display: block; }
+.svc { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+.svc-main { display: grid; gap: 28px; padding: 28px; align-items: center; }
+@media (min-width: 768px) { .svc-main { grid-template-columns: 1fr 1fr; padding: 40px; } }
+.svc-main > div > * + * { margin-top: 14px; }
+.badge-row { display: flex; align-items: center; gap: 10px; }
+.badge { background: rgba(249, 115, 22, .15); color: var(--orange-text); border: 1px solid rgba(249, 115, 22, .3); border-radius: 99px; padding: 3px 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.count { font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--muted); }
+.svc h3 { font-size: 30px; font-weight: 900; line-height: 1.15; }
+.tagline { font-size: 14px; font-weight: 700; color: var(--orange-text); }
+.svc p { font-size: 14px; color: var(--muted); }
+.ticks li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 600; margin-top: 8px; }
+.ticks .ic { color: var(--green); margin-top: 3px; }
+.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
+.media .ic { width: 96px; height: 96px; stroke-width: 1.4; opacity: .95; }
+.media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.media-cap { position: absolute; left: 14px; bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
+.specs { border-top: 1px solid var(--border); background: var(--bg-alt); padding: 24px 28px; }
+@media (min-width: 768px) { .specs { padding: 24px 40px; } }
+.specs h4 { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; margin-bottom: 12px; }
+.spec-grid { display: grid; gap: 12px; }
+@media (min-width: 640px) { .spec-grid { grid-template-columns: 1fr 1fr; } }
+.spec { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.spec dt { font-size: 11px; text-transform: uppercase; color: var(--muted); font-family: ui-monospace, Menlo, Consolas, monospace; }
+.spec dd { font-weight: 700; font-size: 14px; }
+.deck-nav { display: none; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
+.js .deck-nav { display: flex; }
+.round { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; }
+.round:hover { background: #f97316; color: #fff; border-color: #f97316; }
+.deck-count { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--muted); }
+
+/* Venue cards */
+.venue .top { height: 150px; background: var(--grad); color: #fff; display: grid; place-items: center; position: relative; }
+.venue .top .ic { width: 56px; height: 56px; stroke-width: 1.5; }
+.venue .tag { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, .75); color: var(--orange); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
+.venue { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.venue .body { padding: 20px; }
+.venue .body > * + * { margin-top: 8px; }
+.venue h3 { font-size: 16px; }
+.venue p { font-size: 14px; color: var(--muted); }
+
+/* Mixes */
+.mix { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; }
+.mix > * + * { margin-top: 16px; }
+.mix-head { display: flex; justify-content: space-between; align-items: center; }
+.mix h3 { font-size: 24px; font-weight: 900; }
+.mix.day h3, .mix.day .ic-lg { color: #f59e0b; }
+.mix.night h3, .mix.night .ic-lg { color: #a78bfa; }
+.mix p { font-size: 14px; color: var(--muted); }
+.mix-items { display: grid; gap: 8px; }
+@media (min-width: 640px) { .mix-items { grid-template-columns: 1fr 1fr; } }
+.mix-items li { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 600; }
+.mix.day .mix-items .ic { color: #f59e0b; }
+.mix.night .mix-items .ic { color: #a78bfa; }
+
+/* Cities */
+.cities { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.cities li { background: var(--chip); border-radius: 12px; padding: 6px 14px; font-size: 14px; font-weight: 700; }
+
+/* Form */
+.form-card { max-width: 720px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow-lg); }
+.form-card > * + * { margin-top: 20px; }
+.form-card h2 { font-size: 26px; }
+.fields { display: grid; gap: 16px; }
+@media (min-width: 640px) { .fields { grid-template-columns: 1fr 1fr; } }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+input, select, textarea { width: 100%; background: var(--field); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-size: 14px; }
+.honey { position: absolute; left: -9999px; height: 0; overflow: hidden; }
+.fine { font-size: 12px; color: var(--muted); text-align: center; }
+
+/* FAQ (native details, works without JS) */
+.faq { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 0 20px; box-shadow: var(--shadow); }
+.faq + .faq { margin-top: 12px; }
+.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; font-weight: 800; font-size: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .ic { transition: transform .25s; }
+.faq[open] summary .ic { transform: rotate(180deg); }
+.faq p { padding: 0 0 18px; font-size: 14px; color: var(--muted); }
+
+/* Footer */
+.site-footer { background: #020617; color: #94a3b8; text-align: center; padding: 40px 20px; font-size: 14px; border-top: 1px solid #1e293b; }
+.site-footer p + p { margin-top: 8px; }
+.site-footer a:hover { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
     </style>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"SERVOS VENDING","areaServed":"Palm Beach County, Florida","telephone":"(561) 555-0199","email":"rileyc@servosvending.com"}</script>
 </head>
-<body class="font-sans bg-slate-50 dark:bg-servos-darkBg text-slate-900 dark:text-slate-100 transition-colors">
+<body>
 
-    <!-- Top Announcement Bar -->
-    <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold text-xs py-2.5 px-4 text-center tracking-wide flex justify-center items-center gap-2">
-        <span class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] uppercase font-extrabold">
-            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-amber-300"></i> Special Offer
-        </span> 
-        <span>30-Day Risk-Free Trial | Earn 10% Revenue Share over $1,000 net!</span>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+        <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
+        <symbol id="i-dollar" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
+        <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></symbol>
+        <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+        <symbol id="i-trend" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+        <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+        <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+        <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></symbol>
+        <symbol id="i-cooler" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M5 12h14M9 6v2M9 16v2"/></symbol>
+        <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M9 9.5 7.5 12H11l-1.5 2.5"/></symbol>
+        <symbol id="i-cards" viewBox="0 0 24 24"><rect x="3" y="6" width="12" height="15" rx="2"/><path d="M9 3h10a2 2 0 0 1 2 2v12"/></symbol>
+        <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/></symbol>
+        <symbol id="i-martini" viewBox="0 0 24 24"><path d="M8 22h8M12 11v11M19 3l-7 8-7-8z"/></symbol>
+        <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></symbol>
+        <symbol id="i-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/></symbol>
+    </defs>
+</svg>
+
+<a href="#main" class="skip">Skip to content</a>
+
+<div class="announce">
+    <span class="pill"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-sparkle"/></svg> 30-day trial</span>
+    <span>Try a machine free for 30 days. Once it passes $1,000 in a month, you earn 10%.</span>
+</div>
+
+<header class="site-header">
+    <div class="wrap">
+        <div class="header-row">
+            <a href="#" class="brand" aria-label="SERVOS VENDING home">
+                <span class="brand-mark">S</span>
+                <span>
+                    <span class="brand-name">SERVOS VENDING</span>
+                    <span class="brand-sub">Palm Beach County vending &amp; amenities</span>
+                </span>
+            </a>
+            <nav class="nav" aria-label="Main">
+                <a href="#why-us">Why Servos</a><a href="#services">Machines</a><a href="#venues">Venues</a><a href="#mixes">Stocking</a><a href="#revenue">Revenue Share</a><a href="#coverage">Areas</a><a href="#faq">FAQ</a>
+            </nav>
+            <div class="header-actions">
+                <button type="button" id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode"><svg class="ic ic-md" aria-hidden="true"><use id="theme-icon" href="#i-moon"/></svg></button>
+                <a href="#builder" class="btn btn-primary btn-sm header-cta">Start free trial</a>
+                <button type="button" id="menu-toggle" class="icon-btn menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu"><svg class="ic ic-md" aria-hidden="true"><use href="#i-menu"/></svg></button>
+            </div>
+        </div>
     </div>
+    <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
+        <a href="#why-us">Why Servos</a><a href="#services">Machines</a><a href="#venues">Venues</a><a href="#mixes">Stocking</a><a href="#revenue">Revenue Share</a><a href="#coverage">Areas</a><a href="#faq">FAQ</a>
+        <a href="#builder" class="btn btn-primary">Start free trial</a>
+    </nav>
+</header>
 
-    <!-- Main Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/90 dark:bg-servos-darkBg/90 backdrop-blur-md border-b border-slate-200 dark:border-servos-darkBorder">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <a href="#" class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl grad-orange flex items-center justify-center font-heading font-black text-white text-xl shadow-lg">
-                        S
-                    </div>
-                    <div>
-                        <span class="font-heading font-black text-lg tracking-wide text-slate-900 dark:text-white block leading-none">SERVOS VENDING</span>
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mt-1">Service done right</span>
-                    </div>
-                </a>
+<main id="main">
 
-                <nav class="hidden md:flex items-center space-x-7 text-xs sm:text-sm font-semibold">
-                    <a href="#why-us" class="hover:text-servos-orangeDark transition-colors">Why Us</a>
-                    <a href="#services" class="hover:text-servos-orangeDark transition-colors">Services Flipbook</a>
-                    <a href="#gallery" class="hover:text-servos-orangeDark transition-colors">Placements</a>
-                    <a href="#mixes" class="hover:text-servos-orangeDark transition-colors">Mixes</a>
-                    <a href="#revenue" class="hover:text-servos-orangeDark transition-colors">Revenue Share</a>
-                    <a href="#coverage" class="hover:text-servos-orangeDark transition-colors">Coverage</a>
-                    <a href="#faq" class="hover:text-servos-orangeDark transition-colors">FAQ</a>
-                </nav>
+    <section class="hero">
+        <div class="status-pill"><span class="dot"></span><span>Serving Palm Beach County</span></div>
+        <h1>Vending your guests will actually use.<br><span class="grad-text">We run it. You earn from it.</span></h1>
+        <p class="lead">Servos Vending places smart coolers, phone charging stations and trading card kiosks in Palm Beach County businesses and buildings. We supply, install, stock and maintain every machine, so it costs you nothing and takes nothing off your plate.</p>
+        <div class="btn-row">
+            <a href="#builder" class="btn btn-primary btn-lg">Start your 30-day trial</a>
+            <a href="tel:5615550199" class="btn btn-ghost btn-lg"><svg class="ic " aria-hidden="true"><use href="#i-phone"/></svg><span>Call (561) 555-0199</span></a>
+        </div>
+    </section>
 
-                <div class="flex items-center gap-3">
-                    <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-md hover:scale-105 transition-transform">
-                        Start 30-Day Risk-Free Trial
-                    </a>
+    <section id="why-us" class="section alt">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Why Servos</span>
+                <h2>Why venues work with Servos</h2>
+                <p class="lead">A better amenity for your guests, a new revenue stream for you, and none of the day-to-day work.</p>
+            </div>
+            <div class="grid grid-4">
+                <div class="card hover">
+                    <div class="icon-tile"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-dollar"/></svg></div>
+                    <h3>No cost to you</h3>
+                    <p>We buy, install, insure, stock and maintain every machine. You provide the space and a standard power outlet.</p>
+                </div>
+                <div class="card hover">
+                    <div class="icon-tile"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-cpu"/></svg></div>
+                    <h3>Smart monitoring</h3>
+                    <p>Each machine reports its stock and sales around the clock, so we can restock before shelves run low.</p>
+                </div>
+                <div class="card hover">
+                    <div class="icon-tile"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-clock"/></svg></div>
+                    <h3>Local, fast service</h3>
+                    <p>Our technicians are based right here in Palm Beach County, so restocks and repairs happen quickly.</p>
+                </div>
+                <div class="card hover">
+                    <div class="icon-tile"><svg class="ic ic-lg" aria-hidden="true"><use href="#i-trend"/></svg></div>
+                    <h3>You share in the revenue</h3>
+                    <p>Once a machine grosses over $1,000 in a month, you earn 10% of that month's sales.</p>
                 </div>
             </div>
         </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="py-16 sm:py-24 px-4 max-w-5xl mx-auto text-center space-y-6">
-        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200 dark:bg-slate-800 text-xs font-bold">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Palm Beach County Automated Retail & Amenities</span>
-        </div>
-        
-        <h1 class="font-heading text-4xl sm:text-6xl font-black text-slate-900 dark:text-white leading-tight">
-            Premium Automated Services.<br>
-            <span class="grad-text-orange">Zero Hassle. Real Revenue Share.</span>
-        </h1>
-        
-        <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Elevate your venue with factory-direct smart vending, Boost Barz phone charging stations, and VTM trading card kiosks across Palm Beach County. 100% managed with zero capital cost.
-        </p>
-
-        <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <a href="#builder" class="grad-orange text-white px-8 py-4 rounded-2xl font-extrabold text-base shadow-lg hover:scale-105 transition-transform">
-                Start 30-Day Risk-Free Trial
-            </a>
-            <a href="tel:5613293449" class="bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder px-7 py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2">
-                <i data-lucide="phone" class="h-4 w-4 text-orange-500"></i>
-                <span>Call (561) 329-3449</span>
-            </a>
-        </div>
     </section>
 
-    <!-- RESTORED: WHY CHOOSE US SECTION -->
-    <section id="why-us" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">The Servos Advantage</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Why Premier Venues Choose Servos</h2>
-                <p class="text-sm text-slate-600 dark:text-slate-400">We remove all operational headaches so property managers can offer high-end amenities while earning passive revenue.</p>
+    <section id="services" class="section">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">What we install</span>
+                <h2>Machines for every kind of space</h2>
+                <p class="muted">Pick a category to see how it works and what it takes.</p>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
-                            <i data-lucide="dollar-sign" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">$0 Cost & Turnkey Setup</h3>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">We buy, install, insure, stock, and maintain every machine at zero expense to your property.</p>
-                    </div>
-                
-                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
-                            <i data-lucide="cpu" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">24/7 Smart Telemetry</h3>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Real-time AI monitoring ensures machines never sit empty and inventory matches tenant preferences.</p>
-                    </div>
-                
-                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
-                            <i data-lucide="clock" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">Rapid Local Palm Beach Service</h3>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Dedicated technicians based right here in Palm Beach County guarantee rapid restocks and maintenance.</p>
-                    </div>
-                
-                    <div class="p-6 bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-md hover:border-orange-500/50 transition-all space-y-3">
-                        <div class="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-500 flex items-center justify-center font-bold">
-                            <i data-lucide="trending-up" class="h-6 w-6"></i>
-                        </div>
-                        <h3 class="font-heading font-black text-lg text-slate-900 dark:text-white">Profitable Revenue Share</h3>
-                        <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Receive 10% of monthly gross revenue once a threshold is met, turned into pure profit for your venue.</p>
-                    </div>
-                
+            <div class="tabs" role="tablist" aria-label="Equipment categories">
+                <button type="button" class="tab" role="tab" data-i="0" aria-selected="true">Smart Coolers &amp; Combo Machines</button>
+                <button type="button" class="tab" role="tab" data-i="1" aria-selected="false">Phone Charging Stations</button>
+                <button type="button" class="tab" role="tab" data-i="2" aria-selected="false">Trading Card Kiosks</button>
             </div>
-        </div>
-    </section>
-
-    <!-- COMPRESSED INTERACTIVE SERVICES 3D FLIPBOOK & DECK SHOWCASE -->
-    <section id="services" class="py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Interactive Equipment Deck</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Services & Machine Flipbook</h2>
-                <p class="text-xs text-slate-500">Select a category below or flip cards to examine detailed technical specs.</p>
-            </div>
-
-            <!-- Category Tab Switcher -->
-            <div class="flex justify-center flex-wrap gap-2">
-                
-                    <button onclick="switchServiceCard(0)" id="svc-btn-0" class="svc-tab-btn bg-orange-500 text-white shadow-lg px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                        <span>Combo & AI Smart Coolers</span>
-                    </button>
-                
-                    <button onclick="switchServiceCard(1)" id="svc-btn-1" class="svc-tab-btn bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                        <span>Boost Barz Phone Charging</span>
-                    </button>
-                
-                    <button onclick="switchServiceCard(2)" id="svc-btn-2" class="svc-tab-btn bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                        <span>Trading Card Vending Kiosks</span>
-                    </button>
-                
-            </div>
-
-            <!-- Active Flip Card Container -->
-            <div class="max-w-4xl mx-auto perspective-1000">
-                
-                    <div id="svc-card-0" class="svc-card-deck  flip-card relative w-full">
-                        <div class="flip-card-inner relative w-full min-h-[480px] bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-2xl overflow-hidden">
+            <div class="svc-list">
+                <article class="svc active">
+                    <div class="svc-main">
+                        <div>
+                            <div class="badge-row"><span class="badge">Vending.com</span><span class="count">1 / 3</span></div>
+                            <h3>Smart Coolers &amp; Combo Machines</h3>
+                            <p class="tagline">Snacks, cold drinks and fresh meals</p>
+                            <p>Built in the USA and supplied factory-direct by Vending.com. Dual-zone cooling and anti-fog glass keep everything fresh and easy to see, and AI-powered grab-and-go checkout lets guests take what they want and walk away.</p>
+                            <ul class="ticks">
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Factory-direct, with warranty</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Smart glass coolers and dual combo units</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Accepts Apple Pay, Google Pay and tap-to-pay</span></li>
+                            </ul>
+                            <a href="#builder" class="btn btn-primary btn-sm" data-pick="Smart Coolers &amp; Combo Machines">Request this for my venue</a>
+                        </div>
+                        <div class="media">
+                            <svg class="ic " aria-hidden="true"><use href="#i-cooler"/></svg>
                             
-                            <!-- FRONT SIDE OF FLIP CARD -->
-                            <div class="flip-card-front w-full h-full p-6 sm:p-10 flex flex-col md:flex-row gap-8 justify-between items-center">
-                                <div class="w-full md:w-1/2 space-y-4">
-                                    <div class="flex items-center gap-2">
-                                        <span class="bg-orange-500/20 text-orange-500 border border-orange-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Vending.com Direct</span>
-                                        <span class="text-[10px] text-slate-400 font-mono">Card 01 / 03</span>
-                                    </div>
-
-                                    <h3 class="font-heading font-black text-3xl text-slate-900 dark:text-white">Combo & AI Smart Coolers</h3>
-                                    <p class="text-xs font-bold text-orange-500 font-mono">Snacks, Cold Drinks & Fresh Meals</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Supplied directly from the factory floor by Vending.com (built in USA). Features dual-zone climate control, anti-fog glass, and AI grab-and-go contactless checkout.</p>
-
-                                    <ul class="space-y-2 text-xs font-semibold pt-1">
-                                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Factory direct reliability & warranty</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> AI smart glass coolers & dual combo units</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Apple Pay, Google Pay & Tap-to-Pay</li>
-                                    </ul>
-
-                                    <div class="pt-4 flex items-center gap-3">
-                                        <button onclick="toggleCardFlip(0)" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-300 dark:border-slate-700 transition-colors">
-                                            <i data-lucide="rotate-3d" class="h-4 w-4 text-orange-500"></i>
-                                            <span>Flip for Tech Specs</span>
-                                        </button>
-                                        <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:scale-105 transition-transform">
-                                            Request Placement
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="w-full md:w-1/2 h-64 md:h-80 rounded-2xl overflow-hidden relative shadow-inner group">
-                                    <img src="https://images.unsplash.com/photo-1575224300306-1b8da36134ec?auto=format&fit=crop&w=800&q=80" alt="Combo & AI Smart Coolers" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Equipment+Showcase'">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                                        <span class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
-                                            Palm Beach Factory Direct Managed
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- BACK SIDE OF FLIP CARD (TECHNICAL SPECS) -->
-                            <div class="flip-card-back absolute inset-0 w-full h-full p-6 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
-                                <div class="space-y-6">
-                                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                                        <div>
-                                            <span class="text-[10px] text-orange-400 font-mono uppercase tracking-widest block">Hardware & Telemetry Architecture</span>
-                                            <h4 class="font-heading font-black text-2xl text-white">Combo & AI Smart Coolers Specs</h4>
-                                        </div>
-                                        <button onclick="toggleCardFlip(0)" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
-                                            <i data-lucide="rotate-3d" class="h-5 w-5 text-orange-400"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Dimensions & Footprint</span>
-                                            <p class="font-bold text-white">72" H x 39" W x 35" D</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Power & Energy Requirements</span>
-                                            <p class="font-bold text-white">Standard 115V / 60Hz 12A</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Payment Terminal</span>
-                                            <p class="font-bold text-white">Nayax Touch (NFC, Chip, Apple Pay)</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Telemetry & Security</span>
-                                            <p class="font-bold text-white">24/7 Cellular Remote Telemetry</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-4 flex justify-between items-center border-t border-slate-800">
-                                    <button onclick="toggleCardFlip(0)" class="text-xs font-bold text-orange-400 hover:underline flex items-center gap-1">
-                                        &larr; Back to Front Overview
-                                    </button>
-                                    <a href="#builder" class="grad-orange text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-md">
-                                        Request Equipment Placement
-                                    </a>
-                                </div>
-                            </div>
-
+                            <span class="media-cap"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-shield"/></svg> Supplied by Vending.com</span>
                         </div>
                     </div>
-                
-                    <div id="svc-card-1" class="svc-card-deck hidden flip-card relative w-full">
-                        <div class="flip-card-inner relative w-full min-h-[480px] bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-2xl overflow-hidden">
+                    <div class="specs">
+                        <h4>The details</h4>
+                        <dl class="spec-grid">
+                            <div class="spec"><dt>Dimensions</dt><dd>72&quot; H x 39&quot; W x 35&quot; D</dd></div>
+                            <div class="spec"><dt>Power</dt><dd>Standard 115V / 60Hz, 12A</dd></div>
+                            <div class="spec"><dt>Payments</dt><dd>Nayax Touch (NFC, chip, Apple Pay)</dd></div>
+                            <div class="spec"><dt>Telemetry</dt><dd>24/7 cellular remote telemetry</dd></div>
+                        </dl>
+                    </div>
+                </article>
+                <article class="svc">
+                    <div class="svc-main">
+                        <div>
+                            <div class="badge-row"><span class="badge">Boost Barz</span><span class="count">2 / 3</span></div>
+                            <h3>Phone Charging Stations</h3>
+                            <p class="tagline">Portable power bank rentals</p>
+                            <p>From Boost Barz in Texas. Guests rent a portable battery, charge up on the go and return it when they're done. A dead phone is one less reason to leave early.</p>
+                            <ul class="ticks">
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Keeps guests around longer</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Great for bars, nightlife, gyms and golf courses</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Compact enough for a counter or a stand</span></li>
+                            </ul>
+                            <a href="#builder" class="btn btn-primary btn-sm" data-pick="Phone Charging Stations">Request this for my venue</a>
+                        </div>
+                        <div class="media">
+                            <svg class="ic " aria-hidden="true"><use href="#i-battery"/></svg>
                             
-                            <!-- FRONT SIDE OF FLIP CARD -->
-                            <div class="flip-card-front w-full h-full p-6 sm:p-10 flex flex-col md:flex-row gap-8 justify-between items-center">
-                                <div class="w-full md:w-1/2 space-y-4">
-                                    <div class="flex items-center gap-2">
-                                        <span class="bg-orange-500/20 text-orange-500 border border-orange-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase">Boost Barz Texas</span>
-                                        <span class="text-[10px] text-slate-400 font-mono">Card 02 / 03</span>
-                                    </div>
-
-                                    <h3 class="font-heading font-black text-3xl text-slate-900 dark:text-white">Boost Barz Phone Charging</h3>
-                                    <p class="text-xs font-bold text-orange-500 font-mono">Portable Power Pack Rental Kiosks</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Supplied by Boost Barz out of Texas. Customers rent a portable battery, charge on the go, and return it when finished. Keeps patrons inside your venue much longer!</p>
-
-                                    <ul class="space-y-2 text-xs font-semibold pt-1">
-                                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Increases customer dwell time & spending</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Prevents patrons from leaving due to low battery</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Perfect for bars, nightlife, gyms & golf courses</li>
-                                    </ul>
-
-                                    <div class="pt-4 flex items-center gap-3">
-                                        <button onclick="toggleCardFlip(1)" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-300 dark:border-slate-700 transition-colors">
-                                            <i data-lucide="rotate-3d" class="h-4 w-4 text-orange-500"></i>
-                                            <span>Flip for Tech Specs</span>
-                                        </button>
-                                        <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:scale-105 transition-transform">
-                                            Request Placement
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="w-full md:w-1/2 h-64 md:h-80 rounded-2xl overflow-hidden relative shadow-inner group">
-                                    <img src="https://images.unsplash.com/photo-1583863788434-e58a36330cf0?auto=format&fit=crop&w=800&q=80" alt="Boost Barz Phone Charging" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Equipment+Showcase'">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                                        <span class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
-                                            Palm Beach Factory Direct Managed
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- BACK SIDE OF FLIP CARD (TECHNICAL SPECS) -->
-                            <div class="flip-card-back absolute inset-0 w-full h-full p-6 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
-                                <div class="space-y-6">
-                                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                                        <div>
-                                            <span class="text-[10px] text-orange-400 font-mono uppercase tracking-widest block">Hardware & Telemetry Architecture</span>
-                                            <h4 class="font-heading font-black text-2xl text-white">Boost Barz Phone Charging Specs</h4>
-                                        </div>
-                                        <button onclick="toggleCardFlip(1)" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
-                                            <i data-lucide="rotate-3d" class="h-5 w-5 text-orange-400"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Dimensions & Footprint</span>
-                                            <p class="font-bold text-white">24" H x 18" W x 14" D (Counter or Stand)</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Power & Energy Requirements</span>
-                                            <p class="font-bold text-white">Low Power 110V Wall Plug</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Payment Terminal</span>
-                                            <p class="font-bold text-white">undefined</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Telemetry & Security</span>
-                                            <p class="font-bold text-white">undefined</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-4 flex justify-between items-center border-t border-slate-800">
-                                    <button onclick="toggleCardFlip(1)" class="text-xs font-bold text-orange-400 hover:underline flex items-center gap-1">
-                                        &larr; Back to Front Overview
-                                    </button>
-                                    <a href="#builder" class="grad-orange text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-md">
-                                        Request Equipment Placement
-                                    </a>
-                                </div>
-                            </div>
-
+                            <span class="media-cap"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-shield"/></svg> Supplied by Boost Barz</span>
                         </div>
                     </div>
-                
-                    <div id="svc-card-2" class="svc-card-deck hidden flip-card relative w-full">
-                        <div class="flip-card-inner relative w-full min-h-[480px] bg-white dark:bg-servos-darkCard rounded-3xl border border-slate-200 dark:border-servos-darkBorder shadow-2xl overflow-hidden">
+                    <div class="specs">
+                        <h4>The details</h4>
+                        <dl class="spec-grid">
+                            <div class="spec"><dt>Dimensions</dt><dd>24&quot; H x 18&quot; W x 14&quot; D (counter or stand)</dd></div>
+                            <div class="spec"><dt>Power</dt><dd>Low power, 110V wall plug</dd></div>
+                            <div class="spec"><dt>Capacity</dt><dd>8 to 48 reusable power banks</dd></div>
+                            <div class="spec"><dt>Returns</dt><dd>Universal cross-kiosk return system</dd></div>
+                        </dl>
+                    </div>
+                </article>
+                <article class="svc">
+                    <div class="svc-main">
+                        <div>
+                            <div class="badge-row"><span class="badge">VTM</span><span class="count">3 / 3</span></div>
+                            <h3>Trading Card Kiosks</h3>
+                            <p class="tagline">Pokémon and sports card packs</p>
+                            <p>From VTM, a specialist in trading card vending. Booster packs, sports cards and collectibles for collectors and families, in a machine that doesn't take up much room.</p>
+                            <ul class="ticks">
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>A hit with collectors and families</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Easy impulse buy with a small footprint</span></li>
+                                <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check-circle"/></svg><span>Ideal for convenience stores, venues and family lounges</span></li>
+                            </ul>
+                            <a href="#builder" class="btn btn-primary btn-sm" data-pick="Trading Card Kiosks">Request this for my venue</a>
+                        </div>
+                        <div class="media">
+                            <svg class="ic " aria-hidden="true"><use href="#i-cards"/></svg>
                             
-                            <!-- FRONT SIDE OF FLIP CARD -->
-                            <div class="flip-card-front w-full h-full p-6 sm:p-10 flex flex-col md:flex-row gap-8 justify-between items-center">
-                                <div class="w-full md:w-1/2 space-y-4">
-                                    <div class="flex items-center gap-2">
-                                        <span class="bg-orange-500/20 text-orange-500 border border-orange-500/30 text-[10px] font-bold px-3 py-1 rounded-full uppercase">VTM Industry Leaders</span>
-                                        <span class="text-[10px] text-slate-400 font-mono">Card 03 / 03</span>
-                                    </div>
-
-                                    <h3 class="font-heading font-black text-3xl text-slate-900 dark:text-white">Trading Card Vending Kiosks</h3>
-                                    <p class="text-xs font-bold text-orange-500 font-mono">Pokémon & Sports Pack Dispensers</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">Supplied by VTM, the undisputed leaders in card vending. Delivers Pokémon booster packs, sports cards, and collectible packs directly to collectors and enthusiasts.</p>
-
-                                    <ul class="space-y-2 text-xs font-semibold pt-1">
-                                        <li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Massive appeal for collectors & families</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> High margin impulse purchases with zero counter space</li><li class="flex items-center gap-2"><i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-500 shrink-0"></i> Ideal for C-stores, venues & family lounges</li>
-                                    </ul>
-
-                                    <div class="pt-4 flex items-center gap-3">
-                                        <button onclick="toggleCardFlip(2)" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-300 dark:border-slate-700 transition-colors">
-                                            <i data-lucide="rotate-3d" class="h-4 w-4 text-orange-500"></i>
-                                            <span>Flip for Tech Specs</span>
-                                        </button>
-                                        <a href="#builder" class="grad-orange text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md hover:scale-105 transition-transform">
-                                            Request Placement
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="w-full md:w-1/2 h-64 md:h-80 rounded-2xl overflow-hidden relative shadow-inner group">
-                                    <img src="https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?auto=format&fit=crop&w=800&q=80" alt="Trading Card Vending Kiosks" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Equipment+Showcase'">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex items-end p-4">
-                                        <span class="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                                            <i data-lucide="shield-check" class="h-4 w-4 text-emerald-400"></i>
-                                            Palm Beach Factory Direct Managed
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- BACK SIDE OF FLIP CARD (TECHNICAL SPECS) -->
-                            <div class="flip-card-back absolute inset-0 w-full h-full p-6 sm:p-10 bg-slate-900 text-white flex flex-col justify-between">
-                                <div class="space-y-6">
-                                    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
-                                        <div>
-                                            <span class="text-[10px] text-orange-400 font-mono uppercase tracking-widest block">Hardware & Telemetry Architecture</span>
-                                            <h4 class="font-heading font-black text-2xl text-white">Trading Card Vending Kiosks Specs</h4>
-                                        </div>
-                                        <button onclick="toggleCardFlip(2)" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300">
-                                            <i data-lucide="rotate-3d" class="h-5 w-5 text-orange-400"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Dimensions & Footprint</span>
-                                            <p class="font-bold text-white">65" H x 30" W x 28" D</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Power & Energy Requirements</span>
-                                            <p class="font-bold text-white">undefined</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Payment Terminal</span>
-                                            <p class="font-bold text-white">undefined</p>
-                                        </div>
-                                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
-                                            <span class="text-slate-400 font-mono text-[10px] uppercase">Telemetry & Security</span>
-                                            <p class="font-bold text-white">undefined</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="pt-4 flex justify-between items-center border-t border-slate-800">
-                                    <button onclick="toggleCardFlip(2)" class="text-xs font-bold text-orange-400 hover:underline flex items-center gap-1">
-                                        &larr; Back to Front Overview
-                                    </button>
-                                    <a href="#builder" class="grad-orange text-white px-6 py-2.5 rounded-xl text-xs font-extrabold shadow-md">
-                                        Request Equipment Placement
-                                    </a>
-                                </div>
-                            </div>
-
+                            <span class="media-cap"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-shield"/></svg> Supplied by VTM</span>
                         </div>
                     </div>
-                
+                    <div class="specs">
+                        <h4>The details</h4>
+                        <dl class="spec-grid">
+                            <div class="spec"><dt>Dimensions</dt><dd>65&quot; H x 30&quot; W x 28&quot; D</dd></div>
+                            <div class="spec"><dt>Security</dt><dd>Reinforced steel vault lock</dd></div>
+                            <div class="spec"><dt>Dispenser</dt><dd>Precision servo drop sensors</dd></div>
+                            <div class="spec"><dt>Display</dt><dd>21.5&quot; touchscreen ad display</dd></div>
+                        </dl>
+                    </div>
+                </article>
             </div>
-
-            <!-- Flipbook Controls -->
-            <div class="flex justify-center items-center gap-4 pt-2">
-                <button onclick="prevServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
-                    <i data-lucide="chevron-left" class="h-5 w-5"></i>
-                </button>
-                <span id="svc-deck-indicator" class="text-xs font-mono font-bold text-slate-500">1 / 3</span>
-                <button onclick="nextServiceCard()" class="p-3 rounded-full bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder hover:bg-orange-500 hover:text-white transition-colors">
-                    <i data-lucide="chevron-right" class="h-5 w-5"></i>
-                </button>
+            <div class="deck-nav">
+                <button type="button" id="svc-prev" class="round" aria-label="Previous machine"><svg class="ic ic-md" aria-hidden="true"><use href="#i-left"/></svg></button>
+                <span id="svc-count" class="deck-count" aria-live="polite">1 / 3</span>
+                <button type="button" id="svc-next" class="round" aria-label="Next machine"><svg class="ic ic-md" aria-hidden="true"><use href="#i-right"/></svg></button>
             </div>
         </div>
     </section>
 
-    <!-- RESTORED: GALLERY SECTION -->
-    <section id="gallery" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Venue Showcase</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Our Installed Venues & Placements</h2>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Take a look at how our modern automated equipment blends into premier Palm Beach locations.</p>
+    <section id="venues" class="section alt">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Who it's for</span>
+                <h2>Made for places people gather</h2>
+                <p class="lead">From apartment lounges to nightlife, these are the kinds of spaces where our machines work best.</p>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80" alt="Luxury High-Rise Lounge" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
-                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
-                                Residential
-                            </span>
-                        </div>
-                        <div class="p-5 space-y-2">
-                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">Luxury High-Rise Lounge</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Dual Glass-Front AI Cooler placed in Downtown West Palm Beach residential tower.</p>
-                        </div>
-                    </div>
-                
-                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=80" alt="Nightlife & Cocktail Bar" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
-                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
-                                Hospitality
-                            </span>
-                        </div>
-                        <div class="p-5 space-y-2">
-                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">Nightlife & Cocktail Bar</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Boost Barz Portable Charging Station keeping patrons powered up late into the night.</p>
-                        </div>
-                    </div>
-                
-                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80" alt="Boutique Fitness Club" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
-                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
-                                Wellness
-                            </span>
-                        </div>
-                        <div class="p-5 space-y-2">
-                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">Boutique Fitness Club</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">Daytime Wellness Snack & Clean Energy Bar stocked for workout enthusiasts.</p>
-                        </div>
-                    </div>
-                
-                    <div class="group bg-white dark:bg-servos-darkCard rounded-3xl overflow-hidden border border-slate-200 dark:border-servos-darkBorder shadow-md hover:shadow-xl transition-all">
-                        <div class="h-48 overflow-hidden relative">
-                            <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80" alt="Family Entertainment Center" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://placehold.co/800x600/1a1b23/ffffff?text=Venue+Placement'">
-                            <span class="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-orange-400 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase border border-slate-800">
-                                Retail
-                            </span>
-                        </div>
-                        <div class="p-5 space-y-2">
-                            <h3 class="font-heading font-black text-base text-slate-900 dark:text-white">Family Entertainment Center</h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">VTM Trading Card kiosk generating high impulse sales in family gaming center.</p>
-                        </div>
-                    </div>
-                
-            </div>
-        </div>
-    </section>
-
-    <!-- DAY & NIGHT MIXES SECTION -->
-    <section id="mixes" class="py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div class="text-center max-w-2xl mx-auto space-y-2">
-                <span class="font-bold text-xs tracking-widest uppercase grad-text-orange">Tailored Curation</span>
-                <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Daytime Mix vs. Nighttime Mix</h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Daytime Mix -->
-                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-heading font-black text-2xl text-amber-500">Daytime Wellness Mix</h3>
-                        <i data-lucide="sun" class="h-6 w-6 text-amber-500"></i>
-                    </div>
-                    <p class="text-sm text-slate-600 dark:text-slate-300">Engineered for high performance, daily focus, and clean hydration. Packed with premium cold brew, clean energy, artisanal snacks, and nutritious bites.</p>
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> Cold Brew Coffee & Espresso
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> Celsius & Clean Energy
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> Sparkling Waters & Electrolytes
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-amber-500"></i> Organic Protein Bars & Nuts
-                            </div>
-                        
-                    </div>
+            <div class="grid grid-4">
+                <div class="venue">
+                    <div class="top"><span class="tag">Residential</span><svg class="ic " aria-hidden="true"><use href="#i-building"/></svg></div>
+                    <div class="body"><h3>Residential buildings</h3><p>Resident lounges and clubhouses love a smart cooler that's open around the clock.</p></div>
                 </div>
-
-                <!-- Nighttime Mix -->
-                <div class="p-8 rounded-3xl bg-slate-100 dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder space-y-4">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-heading font-black text-2xl text-purple-400">Nighttime Vibes Mix</h3>
-                        <i data-lucide="moon" class="h-6 w-6 text-purple-400"></i>
-                    </div>
-                    <p class="text-sm text-slate-600 dark:text-slate-300">Tailored for late-night crowds, nightlife venues, and party venues. Includes hydration recovery kits, premium mixers, high-energy drinks, and late-night cravings.</p>
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> Liquid I.V. & Recovery Packs
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> Red Bull & Craft Mixers
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> Gourmet Late-Night Snacks
-                            </div>
-                        
-                            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 text-xs font-semibold border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                <i data-lucide="check" class="h-3.5 w-3.5 text-purple-400"></i> Hangover Prevention & Gum
-                            </div>
-                        
-                    </div>
+                <div class="venue">
+                    <div class="top"><span class="tag">Hospitality</span><svg class="ic " aria-hidden="true"><use href="#i-martini"/></svg></div>
+                    <div class="body"><h3>Bars &amp; nightlife</h3><p>Phone chargers keep the night going, and guests stick around.</p></div>
+                </div>
+                <div class="venue">
+                    <div class="top"><span class="tag">Wellness</span><svg class="ic " aria-hidden="true"><use href="#i-dumbbell"/></svg></div>
+                    <div class="body"><h3>Gyms &amp; fitness studios</h3><p>Protein bars, electrolytes and cold brew right where people work out.</p></div>
+                </div>
+                <div class="venue">
+                    <div class="top"><span class="tag">Entertainment</span><svg class="ic " aria-hidden="true"><use href="#i-gamepad"/></svg></div>
+                    <div class="body"><h3>Family entertainment</h3><p>Trading card kiosks turn waiting around into a fun little purchase.</p></div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- REVENUE SPLIT SECTION -->
-    <section id="revenue" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-5xl mx-auto px-4 space-y-8 text-center">
-            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Our Revenue Share Model</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">We believe in earning your trust. That's why every placement starts with a 30-day trial and a clear, profitable revenue share structure.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">1</div>
-                    <h4 class="font-heading font-bold text-lg">30-Day Risk-Free Trial</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">Every placement starts with a 30-day trial period to measure machine volume, peak traffic times, and resident feedback.</p>
+    <section id="mixes" class="section">
+        <div class="wrap">
+            <div class="section-head">
+                <span class="eyebrow">Stocked for your crowd</span>
+                <h2>Stocked for the time of day</h2>
+                <p class="lead">We tailor what's inside each machine to who's using your venue and when.</p>
+            </div>
+            <div class="grid grid-2-lg" style="gap:32px">
+                <div class="mix day">
+                    <div class="mix-head"><h3>Daytime Mix</h3><svg class="ic ic-lg" aria-hidden="true"><use href="#i-sun"/></svg></div>
+                    <p>For people who are working, working out or just getting through the day: cold brew, clean energy drinks, good snacks and electrolytes.</p>
+                    <ul class="mix-items">
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Cold brew coffee &amp; espresso</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Celsius &amp; clean energy</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Sparkling water &amp; electrolytes</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Organic protein bars &amp; nuts</li>
+                    </ul>
                 </div>
-
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">2</div>
-                    <h4 class="font-heading font-bold text-lg">10% Revenue Share</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">If the machine breaks the $1,000 monthly gross mark during any month of its contract, the business owner receives 10% of monthly gross!</p>
-                </div>
-
-                <div class="p-6 bg-white dark:bg-servos-darkCard rounded-2xl border border-slate-200 dark:border-servos-darkBorder space-y-2">
-                    <div class="w-8 h-8 rounded-lg grad-orange text-white font-extrabold flex items-center justify-center text-sm">3</div>
-                    <h4 class="font-heading font-bold text-lg">Flexible Options</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed">If monthly sales are under $1,000, Servos retains profits to cover stocking and telemetry costs. Flat rental fee options are also available.</p>
+                <div class="mix night">
+                    <div class="mix-head"><h3>Nighttime Mix</h3><svg class="ic ic-lg" aria-hidden="true"><use href="#i-moon"/></svg></div>
+                    <p>For bars, lounges and late nights: recovery packs, mixers, energy drinks and the snacks everyone wants at midnight.</p>
+                    <ul class="mix-items">
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Liquid I.V. &amp; recovery packs</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Red Bull &amp; craft mixers</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Gourmet late-night snacks</li>
+                        <li><svg class="ic ic-sm" aria-hidden="true"><use href="#i-check"/></svg>Hangover prevention &amp; gum</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- COVERAGE AREA SECTION -->
-    <section id="coverage" class="py-16">
-        <div class="max-w-5xl mx-auto px-4 text-center space-y-6">
-            <h2 class="font-heading text-3xl font-black text-slate-900 dark:text-white">Proudly Serving All of Palm Beach County</h2>
-            <p class="text-sm text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Our dedicated warehouse and technician fleet provide fast delivery, emergency maintenance response, and smart telemetry restocking throughout Palm Beach County.</p>
-            
-            <div class="flex flex-wrap justify-center gap-2 pt-2">
-                <span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">West Palm Beach</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Boca Raton</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Delray Beach</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Jupiter</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Palm Beach Gardens</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Wellington</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Boynton Beach</span><span class="px-3.5 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200">Lake Worth</span>
+    <section id="revenue" class="section alt">
+        <div class="wrap-md center">
+            <div class="section-head">
+                <h2>How the revenue share works</h2>
+                <p class="lead">Simple and fair. Every placement starts with a 30-day trial, and you share in the upside.</p>
+            </div>
+            <div class="grid grid-3" style="text-align:left">
+                <div class="card"><div class="num">1</div><h3>30-day trial</h3><p>Every placement starts with a 30-day trial. We watch sales, busy times and feedback to make sure the machine is a good fit for your space.</p></div>
+                <div class="card"><div class="num">2</div><h3>10% back to you</h3><p>In any month a machine grosses over $1,000, you receive 10% of that month's gross sales.</p></div>
+                <div class="card"><div class="num">3</div><h3>Flexible options</h3><p>In months under $1,000, Servos keeps the revenue to cover stocking and monitoring. Prefer predictable income? Ask us about a flat monthly rental fee.</p></div>
             </div>
         </div>
     </section>
 
-    <!-- FORM REQUEST BUILDER -->
-    <section id="builder" class="py-16 bg-slate-100 dark:bg-slate-900/50">
-        <div class="max-w-3xl mx-auto px-4">
-            <div class="bg-white dark:bg-servos-darkCard p-8 rounded-3xl border border-slate-200 dark:border-servos-darkBorder space-y-6 shadow-xl">
-                <div class="text-center space-y-2">
-                    <h2 class="font-heading text-2xl font-black">Request Placement Trial</h2>
-                    <p class="text-xs text-slate-500">Submit your venue request in under 60 seconds.</p>
-                </div>
+    <section id="coverage" class="section">
+        <div class="wrap-md center stack">
+            <h2>Serving all of Palm Beach County</h2>
+            <p class="lead" style="max-width:640px;margin-left:auto;margin-right:auto">Our technicians and restocking routes cover the whole county. Don't see your city listed? Reach out and we'll let you know.</p>
+            <ul class="cities"><li>West Palm Beach</li><li>Boca Raton</li><li>Delray Beach</li><li>Jupiter</li><li>Palm Beach Gardens</li><li>Wellington</li><li>Boynton Beach</li><li>Lake Worth</li></ul>
+        </div>
+    </section>
 
-                <form action="https://formspree.io/f/rileyc@servosvending.com" method="POST" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <section id="builder" class="section alt">
+        <div class="wrap">
+            <div class="form-card">
+                <div class="center stack">
+                    <h2>Let's find the right spot</h2>
+                    <p class="muted" style="font-size:14px">Tell us a bit about your venue and we'll reply within one business day.</p>
+                </div>
+                <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST" class="stack">
+                    <input type="hidden" name="_subject" value="New SERVOS VENDING placement request">
+                    <div class="honey" aria-hidden="true"><input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></div>
+                    <div class="fields">
+                        <div><label for="f-name">Your name *</label><input id="f-name" type="text" name="full_name" autocomplete="name" required></div>
+                        <div><label for="f-email">Email *</label><input id="f-email" type="email" name="email" autocomplete="email" required></div>
+                        <div><label for="f-phone">Phone *</label><input id="f-phone" type="tel" name="phone" autocomplete="tel" required></div>
+                        <div><label for="f-venue">Venue or business name *</label><input id="f-venue" type="text" name="property_name" autocomplete="organization" required></div>
                         <div>
-                            <label class="block text-xs font-bold mb-1">Your Name *</label>
-                            <input type="text" name="full_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                            <label for="f-type">What kind of place is it?</label>
+                            <select id="f-type" name="venue_type">
+                                <option value="">Select one</option>
+                                <option>Residential / apartments</option><option>Bar / nightlife</option><option>Gym / wellness</option><option>Office / workplace</option><option>Family entertainment</option><option>Golf course / club</option><option>Other</option>
+                            </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-1">Work Email *</label>
-                            <input type="email" name="email" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Phone *</label>
-                            <input type="tel" name="phone" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Venue / Business Name *</label>
-                            <input type="text" name="property_name" required class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                            <label for="f-service">What interests you?</label>
+                            <select id="f-service" name="interested_in"><option value="">Not sure yet</option><option>Smart Coolers &amp; Combo Machines</option><option>Phone Charging Stations</option><option>Trading Card Kiosks</option><option>More than one</option></select>
                         </div>
                     </div>
-
-                    <button type="submit" class="w-full grad-orange text-white py-4 rounded-2xl font-black text-sm shadow-lg hover:scale-[1.01] transition-transform">
-                        Submit 30-Day Risk-Free Trial Request
-                    </button>
+                    <div><label for="f-msg">Anything we should know? (optional)</label><textarea id="f-msg" name="message" rows="3"></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-block">Request my free trial</button>
+                    <p class="fine">We only use your details to get back to you.</p>
                 </form>
             </div>
         </div>
     </section>
 
-    <!-- FAQ SECTION -->
-    <section id="faq" class="py-16">
-        <div class="max-w-4xl mx-auto px-4 space-y-8">
-            <h2 class="font-heading text-3xl font-black text-center">Frequently Asked Questions</h2>
-            <div class="space-y-3">
-                
-                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
-                        <button type="button" onclick="toggleFaq(0)" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
-                            <span>How does the 30-day trial and revenue split work?</span>
-                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </div>
-                        </button>
-                        <div class="faq-content">
-                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">Every placement begins with a 30-day trial period. If the machine earns over $1,000 gross monthly revenue, your venue receives 10% of monthly gross! If under $1,000, Servos retains profits for operational costs.</p>
-                        </div>
-                    </div>
-                
-                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
-                        <button type="button" onclick="toggleFaq(1)" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
-                            <span>Who manufactures your machines and charging stations?</span>
-                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </div>
-                        </button>
-                        <div class="faq-content">
-                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">Our combo machines and AI smart coolers are supplied factory-direct by Vending.com (built in USA). Our phone charging kiosks are supplied by Boost Barz out of Texas, and our trading card machines are manufactured by VTM.</p>
-                        </div>
-                    </div>
-                
-                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
-                        <button type="button" onclick="toggleFaq(2)" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
-                            <span>What is the difference between Daytime and Nighttime mixes?</span>
-                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </div>
-                        </button>
-                        <div class="faq-content">
-                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">Our Daytime Mix focuses on cold brew coffee, Celsius energy, organic protein bars, and sparkling water. Our Nighttime Mix caters to nightlife spots with Liquid I.V. recovery packs, mixers, Red Bull, and late-night snacks.</p>
-                        </div>
-                    </div>
-                
-                    <div class="faq-card bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder rounded-2xl p-5 shadow-sm">
-                        <button type="button" onclick="toggleFaq(3)" class="w-full flex justify-between items-center text-left font-heading font-bold text-base">
-                            <span>How fast can a service or machine be installed?</span>
-                            <div class="faq-icon w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                                <i data-lucide="chevron-down" class="h-4 w-4"></i>
-                            </div>
-                        </button>
-                        <div class="faq-content">
-                            <p class="pt-3 text-xs text-slate-500 leading-relaxed">Once your venue request is submitted, our local Palm Beach technicians complete placement, setup, testing, and stocking within 5 to 7 business days.</p>
-                        </div>
-                    </div>
-                
-            </div>
+    <section id="faq" class="section">
+        <div class="wrap-sm">
+            <h2 class="center" style="margin-bottom:32px">Questions, answered</h2>
+            <details class="faq">
+                <summary>How does the free trial work?<svg class="ic ic-md" aria-hidden="true"><use href="#i-down"/></svg></summary>
+                <p>Every placement starts with a 30-day trial. Whenever a machine grosses more than $1,000 in a month, you receive 10% of that month's sales. If a month comes in under $1,000, Servos keeps the revenue to cover stocking and operating costs. Flat rental options are available too.</p>
+            </details>
+            <details class="faq">
+                <summary>Does it cost my venue anything?<svg class="ic ic-md" aria-hidden="true"><use href="#i-down"/></svg></summary>
+                <p>No. Servos supplies, installs, insures, stocks and maintains the equipment. You provide the space and a standard power outlet.</p>
+            </details>
+            <details class="faq">
+                <summary>Who makes your machines?<svg class="ic ic-md" aria-hidden="true"><use href="#i-down"/></svg></summary>
+                <p>Our smart coolers and combo machines come factory-direct from Vending.com and are built in the USA. Phone charging stations are supplied by Boost Barz in Texas, and our trading card kiosks are made by VTM.</p>
+            </details>
+            <details class="faq">
+                <summary>Will you stock what my guests actually want?<svg class="ic ic-md" aria-hidden="true"><use href="#i-down"/></svg></summary>
+                <p>That's the goal. Our Daytime Mix leans toward cold brew, clean energy drinks, protein bars and sparkling water. Our Nighttime Mix suits bars and late-night venues with recovery packs, mixers, energy drinks and snacks. Smart monitoring helps us adjust as we learn what sells.</p>
+            </details>
+            <details class="faq">
+                <summary>How quickly can a machine be installed?<svg class="ic ic-md" aria-hidden="true"><use href="#i-down"/></svg></summary>
+                <p>Once you send in a request, our local technicians typically handle placement, setup, testing and stocking within 5 to 7 business days.</p>
+            </details>
         </div>
     </section>
 
-    <footer class="bg-slate-950 text-slate-400 py-10 text-xs border-t border-slate-800 text-center space-y-2">
-        <p>&copy; 2026 SERVOS VENDING. All rights reserved.</p>
-        <p>Contact: (561) 329-3449 | hello@servosvending.com</p>
-    </footer>
+</main>
 
-    <script>
-        let currentSvcCard = 0;
-        const totalSvcCards = 3;
+<footer class="site-footer">
+    <p>&copy; 2026 SERVOS VENDING. All rights reserved.</p>
+    <p><a href="tel:5615550199">(561) 555-0199</a> | <a href="mailto:rileyc@servosvending.com">rileyc@servosvending.com</a></p>
+</footer>
 
-        function switchServiceCard(index) {
-            currentSvcCard = index;
-            document.querySelectorAll('.svc-card-deck').forEach((el, i) => {
-                if (i === index) el.classList.remove('hidden');
-                else {
-                    el.classList.add('hidden');
-                    el.classList.remove('flipped');
-                }
-            });
+<script>
+(function () {
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
 
-            document.querySelectorAll('.svc-tab-btn').forEach((btn, i) => {
-                if (i === index) {
-                    btn.className = "svc-tab-btn bg-orange-500 text-white shadow-lg px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
-                } else {
-                    btn.className = "svc-tab-btn bg-white dark:bg-servos-darkCard border border-slate-200 dark:border-servos-darkBorder text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2";
-                }
-            });
+    /* Machine tabs + arrows */
+    var cards = $$('.svc'), tabs = $$('.tab'), cur = 0;
+    function show(i) {
+        cur = (i + cards.length) % cards.length;
+        cards.forEach(function (c, n) { c.classList.toggle('active', n === cur); });
+        tabs.forEach(function (t, n) { t.setAttribute('aria-selected', n === cur ? 'true' : 'false'); });
+        $('#svc-count').textContent = (cur + 1) + ' / ' + cards.length;
+    }
+    tabs.forEach(function (t) { t.addEventListener('click', function () { show(+t.getAttribute('data-i')); }); });
+    $('#svc-prev').addEventListener('click', function () { show(cur - 1); });
+    $('#svc-next').addEventListener('click', function () { show(cur + 1); });
 
-            document.getElementById('svc-deck-indicator').innerText = (index + 1) + " / " + totalSvcCards;
-        }
+    /* "Request Placement" pre-selects the form */
+    $$('[data-pick]').forEach(function (a) {
+        a.addEventListener('click', function () { $('#f-service').value = a.getAttribute('data-pick'); });
+    });
 
-        function nextServiceCard() {
-            let next = (currentSvcCard + 1) % totalSvcCards;
-            switchServiceCard(next);
-        }
+    /* Mobile menu */
+    var mbtn = $('#menu-toggle'), menu = $('#mobile-menu');
+    function closeMenu() { menu.classList.remove('open'); mbtn.setAttribute('aria-expanded', 'false'); }
+    mbtn.addEventListener('click', function () {
+        var open = menu.classList.toggle('open');
+        mbtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    $$('#mobile-menu a').forEach(function (a) { a.addEventListener('click', closeMenu); });
 
-        function prevServiceCard() {
-            let prev = (currentSvcCard - 1 + totalSvcCards) % totalSvcCards;
-            switchServiceCard(prev);
-        }
-
-        function toggleCardFlip(index) {
-            const card = document.getElementById('svc-card-' + index);
-            if (card) card.classList.toggle('flipped');
-        }
-
-        function toggleFaq(index) {
-            const cards = document.querySelectorAll('.faq-card');
-            cards.forEach((card, i) => {
-                if (i === index) card.classList.toggle('active');
-                else card.classList.remove('active');
-            });
-        }
-
-        window.onload = function() { lucide.createIcons(); }
-    </script>
+    /* Theme toggle (follows device setting until the visitor chooses) */
+    var root = document.documentElement, icon = $('#theme-icon');
+    function isDark() {
+        var t = root.getAttribute('data-theme');
+        return t ? t === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function syncIcon() { icon.setAttribute('href', isDark() ? '#i-sun' : '#i-moon'); }
+    $('#theme-toggle').addEventListener('click', function () {
+        var next = isDark() ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('servos-theme', next); } catch (e) {}
+        syncIcon();
+    });
+    syncIcon();
+})();
+</script>
 </body>
 </html>
