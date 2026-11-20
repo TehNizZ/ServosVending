@@ -8,7 +8,7 @@
 <style>
 :root {
   --bg: #0b0f17; --panel: #131924; --panel-2: #0f141d; --border: #212b3b; --border-2: #2e3b50;
-  --text: #e2e8f0; --muted: #8fa0b8; --accent: #3b82f6; --accent-2: #2563eb; --orange: #ff773d; --green: #10b981; --red: #f87171;
+  --text: #e2e8f0; --muted: #8fa0b8; --accent: #3b82f6; --accent-2: #2563eb; --orange: #ffa23f; --green: #10b981; --red: #f87171;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
@@ -26,7 +26,10 @@ button { cursor: pointer; }
 /* Top bar */
 .topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
 .logo { display: flex; align-items: center; gap: 12px; }
-.logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ffbe55, #ff773d); color: #fff; font-weight: 900; display: grid; place-items: center; }
+.logo-link { display: block; border-radius: 10px; text-decoration: none; }
+.logo-mark { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #ffcb52, #ff9d2f); color: #1f1300; display: grid; place-items: center; transition: transform .15s; }
+.logo-link:hover .logo-mark { transform: translateY(-1px) scale(1.04); }
+.logo-s { width: 24px; height: 24px; }
 .logo h1 { font-size: 15px; font-weight: 800; letter-spacing: .06em; }
 .status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); margin-top: 2px; }
 .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
@@ -126,6 +129,7 @@ body[data-mode="code"] #code-pane { display: flex; }
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
 <defs>
+<symbol id="a-logo" viewBox="0 0 40 40"><path d="M27 13.2C27 10.4 24 8.8 20.2 8.8c-4 0-6.7 2-6.7 5.3 0 3.6 3.2 4.6 6.6 5.5 3.7 1 6.8 2 6.8 5.8 0 3.3-2.9 5.4-6.9 5.4-3.6 0-6.5-1.6-6.8-4.6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/><circle cx="30.6" cy="9.6" r="2.3" fill="currentColor" stroke="none"/></symbol>
 <symbol id="a-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
 <symbol id="a-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
 <symbol id="a-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></symbol>
@@ -156,7 +160,9 @@ body[data-mode="code"] #code-pane { display: flex; }
 
 <header class="topbar">
   <div class="logo">
-    <div class="logo-mark">S</div>
+    <a class="logo-link" href="/" title="Back to the Servos website" aria-label="Servos Vending home">
+      <span class="logo-mark"><svg class="logo-s" viewBox="0 0 40 40" aria-hidden="true"><use href="#a-logo"/></svg></span>
+    </a>
     <div>
       <h1>SERVOS STUDIO</h1>
       <p class="status"><span id="save-status-text">Edits save automatically in this browser</span></p>
@@ -285,18 +291,58 @@ body[data-mode="code"] #code-pane { display: flex; }
         <div class="field"><label>Form headline</label><input type="text" data-key="formTitle"></div>
         <div class="field"><label>Form intro</label><input type="text" data-key="formSubtitle"></div>
         <div class="field">
-          <label for="gform-link">Google Form pre-filled link</label>
-          <textarea id="gform-link" rows="3" data-key="gFormLink" placeholder="https://docs.google.com/forms/d/e/.../viewform?usp=pp_url&amp;entry.123=name&amp;entry.456=email..."></textarea>
+          <label for="gform-link">Form connection link</label>
+          <textarea id="gform-link" rows="3" data-key="gFormLink" placeholder="https://script.google.com/macros/s/.../exec"></textarea>
           <p class="hint" id="gform-status"></p>
         </div>
         <div class="group">
-          <h3><svg class="ic"><use href="#a-info"/></svg>How to connect your Google Form</h3>
+          <h3><svg class="ic"><use href="#a-info"/></svg>Send requests to a Google Sheet (recommended)</h3>
           <ol class="steps-list">
-            <li>Create a form with <b>7 short-answer questions</b> (use a paragraph question for the last one). Do not use the built-in "Collect emails" setting, and leave sign-in and one-response limits off.</li>
-            <li>In Google Forms, open the three-dot menu and choose <b>Get pre-filled link</b>.</li>
-            <li>In each question, type the matching word: <b>name, email, phone, venue, type, interest, message</b>. Then click <b>Get link</b> and copy it.</li>
-            <li>Paste the link above. The status line should say all 7 fields are mapped.</li>
+            <li>Open your <b>Servos Placement Requests</b> sheet in Google Sheets.</li>
+            <li>Choose <b>Extensions, then Apps Script</b>. Delete anything in the editor and paste the script below. Click Save.</li>
+            <li>Click <b>Deploy, then New deployment</b>. Pick type <b>Web app</b>, set <b>Execute as: Me</b> and <b>Who has access: Anyone</b>. Deploy and approve the permissions.</li>
+            <li>Copy the <b>Web app URL</b> (it ends in /exec) and paste it into the box above.</li>
           </ol>
+          <div class="field">
+            <label for="apps-script-code">Script to paste</label>
+            <textarea id="apps-script-code" rows="8" readonly spellcheck="false" style="font-family: var(--mono); font-size: 11px;">// Servos placement requests: saves each website request as a row in this sheet
+// and emails you a notification. Paste into Extensions &gt; Apps Script.
+var NOTIFY_EMAIL = 'rileyc@servosvending.com';
+
+var HEADERS = ['Received', 'Name', 'Email', 'Phone', 'Venue', 'Type of place', 'Interested in', 'Notes'];
+var FIELDS = ['full_name', 'email', 'phone', 'property_name', 'venue_type', 'interested_in', 'message'];
+
+function clean(v) {
+  v = String(v || '').slice(0, 2000).trim();
+  // Stop spreadsheet formulas from running if someone types = + - or @ first.
+  return /^[=+\-@]/.test(v) ? "'" + v : v;
+}
+
+function doPost(e) {
+  var p = (e &amp;&amp; e.parameter) || {};
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    if (sheet.getLastRow() === 0) sheet.appendRow(HEADERS);
+    var row = [new Date()];
+    FIELDS.forEach(function (f) { row.push(clean(p[f])); });
+    sheet.appendRow(row);
+    MailApp.sendEmail({
+      to: NOTIFY_EMAIL,
+      replyTo: String(p.email || '').slice(0, 200),
+      subject: 'New placement request: ' + clean(p.property_name || p.full_name),
+      body: HEADERS.slice(1).map(function (h, i) { return h + ': ' + row[i + 1]; }).join('\n')
+    });
+  } finally {
+    lock.releaseLock();
+  }
+  return ContentService.createTextOutput('ok');
+}
+</textarea>
+          </div>
+          <button type="button" class="btn" data-action="copy-script"><svg class="ic"><use href="#a-copy"/></svg>Copy script</button>
+          <p class="hint">If you change the script later, use Deploy, then Manage deployments, then edit and pick "New version". A Google Form pre-filled link also works in the box above.</p>
         </div>
         <div class="field"><label>Submit button text</label><input type="text" data-key="formSubmitBtnText"></div>
       </div>
@@ -383,7 +429,7 @@ const DEFAULT_STATE = {
     heroTitle2: "We run it. You earn from it.",
     heroSubtitle: "Servos Vending places smart coolers, phone charging stations and trading card kiosks in Palm Beach County businesses and buildings. We supply, install, stock and maintain every machine, so it costs you nothing and takes nothing off your plate.",
     heroCtaPrimary: "Start your 30-day trial",
-    contactPhone: "(561) 555-0199",
+    contactPhone: "561-329-3449",
     contactEmail: "rileyc@servosvending.com",
 
     whyUsTitle: "Why venues work with Servos",
@@ -507,6 +553,11 @@ function loadState() {
     try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) {}
     if (!saved || typeof saved !== 'object') { state = clone(DEFAULT_STATE); return; }
 
+    // Clean up phone numbers saved from earlier drafts (placeholder, or a doubled area code).
+    if (typeof saved.contactPhone === 'string' && (/555-0199/.test(saved.contactPhone) || /^\(561\)\s*561-329-3449$/.test(saved.contactPhone.trim()))) {
+        saved.contactPhone = DEFAULT_STATE.contactPhone;
+    }
+
     if (saved._copyVersion !== COPY_VERSION) {
         const adopt = window.confirm(
             'A fully rewritten set of website copy is available.\n\n' +
@@ -550,6 +601,14 @@ function saveState() {
             const out = { action: '', entries: {}, found: [], missing: [] };
             const fields = { name: 'full_name', email: 'email', phone: 'phone', venue: 'property_name', type: 'venue_type', interest: 'interested_in', message: 'message' };
             link = (link || '').trim();
+            const sm = link.match(/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec/);
+            if (sm) {
+                out.action = sm[0];
+                out.script = true;
+                Object.keys(fields).forEach((k) => { out.entries[fields[k]] = fields[k]; out.found.push(k); });
+                out.missing = [];
+                return out;
+            }
             const m = link.match(/https:\/\/docs\.google\.com\/forms\/d\/e\/([\w-]+)/);
             if (!m) { out.missing = Object.keys(fields); return out; }
             out.action = 'https://docs.google.com/forms/d/e/' + m[1] + '/formResponse';
@@ -684,7 +743,7 @@ function saveState() {
     <meta name="theme-color" content="#0f1014">
     <meta property="og:site_name" content="${name}">
     <meta name="twitter:card" content="summary">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c2410c'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffb52e'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' text-anchor='middle' fill='%231f1300'%3ES%3C/text%3E%3C/svg%3E">
     <script>
         (function () {
             var d = document.documentElement;
@@ -696,12 +755,13 @@ function saveState() {
 /* Servos Vending - static stylesheet. No frameworks, no external fonts. */
 
 :root {
-  --orange: #ffbe55;
-  --orange-dark: #ff773d;
-  --orange-text: #b3440a;
-  --grad: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%);
-  --btn-grad: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
-  --grad-text: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
+  --orange: #ffd36b;
+  --orange-dark: #ffa23f;
+  --orange-text: #9a4d00;
+  --grad: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%);
+  --btn-grad: linear-gradient(135deg, #ffcb52 0%, #ff9d2f 100%);
+  --on-accent: #1f1300;
+  --grad-text: linear-gradient(135deg, #c75f00 0%, #9a4d00 100%);
   --day: #b45309;
   --night: #6d28d9;
 
@@ -725,16 +785,55 @@ function saveState() {
   :root:not([data-theme="light"]) {
     --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
     --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
-    --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
-    --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
+    --orange-text: #ffd36b; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+    --grad-text: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%); --day: #fbbf24; --night: #a78bfa;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
   --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
-  --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
-  --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
+  --orange-text: #ffd36b; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+  --grad-text: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%); --day: #fbbf24; --night: #a78bfa;
 }
+
+
+/* Soft colour wisps down the page. Sized in viewport units so they scale from phone to desktop. */
+body { position: relative; }
+body::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.170), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.119), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.119), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.153), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.085), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.119), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.153), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.119), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.136), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.119), transparent 70%);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body::before { background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.150), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.135), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.075), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.135), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.120), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.105), transparent 70%); } }
+:root[data-theme="dark"] body::before { background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.150), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.135), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.075), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.135), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.120), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.105), transparent 70%); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -761,7 +860,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .wrap-sm { max-width: 760px; margin: 0 auto; padding: 0 20px; }
 .center { text-align: center; }
 .section { padding: 64px 0; }
-.section.alt { background: var(--bg-alt); }
+.section.alt { background: color-mix(in srgb, var(--bg-alt) 72%, transparent); }
 .stack > * + * { margin-top: 14px; }
 .eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-text); }
 .section-head { max-width: 640px; margin: 0 auto 40px; text-align: center; }
@@ -774,7 +873,7 @@ h3 { font-weight: 800; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-weight: 800; padding: 12px 22px; transition: transform .15s; }
-.btn-primary { background: var(--btn-grad); color: #fff; box-shadow: var(--shadow); }
+.btn-primary { background: var(--btn-grad); color: var(--on-accent); box-shadow: var(--shadow); }
 .btn-primary:hover { transform: scale(1.04); }
 .btn-ghost { background: var(--card); border: 1px solid var(--border); }
 .btn-lg { padding: 16px 30px; font-size: 16px; }
@@ -789,7 +888,7 @@ h3 { font-weight: 800; }
 .site-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
 .header-row { display: flex; align-items: center; justify-content: space-between; height: 80px; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; box-shadow: var(--shadow); }
 .brand-name { display: block; font-weight: 900; font-size: 18px; letter-spacing: .04em; line-height: 1; }
 .brand-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .nav { display: none; gap: 24px; font-size: 14px; font-weight: 600; }
@@ -801,7 +900,7 @@ h3 { font-weight: 800; }
 .mobile-menu { display: none; border-top: 1px solid var(--border); padding: 10px 20px 16px; font-weight: 600; font-size: 15px; }
 .mobile-menu.open { display: block; }
 .mobile-menu a { display: block; padding: 11px 0; }
-.mobile-menu .btn { color: #fff; margin-top: 8px; }
+.mobile-menu .btn-primary { color: var(--on-accent); margin-top: 8px; }
 @media (min-width: 640px) { .header-cta { display: inline-flex; } }
 @media (min-width: 1024px) { .nav { display: flex; } .menu-btn, .mobile-menu { display: none !important; } }
 
@@ -830,12 +929,12 @@ h3 { font-weight: 800; }
 .card h3 { font-size: 18px; }
 .card p { font-size: 14px; color: var(--muted); }
 .icon-tile { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 119, 61, .12); color: var(--orange-dark); display: grid; place-items: center; }
-.num { width: 32px; height: 32px; border-radius: 10px; background: var(--btn-grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
+.num { width: 32px; height: 32px; border-radius: 10px; background: var(--btn-grad); color: var(--on-accent); font-weight: 900; display: grid; place-items: center; font-size: 14px; }
 
 /* Services */
 .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
 .tab { padding: 9px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--card); border: 1px solid var(--border); }
-.tab[aria-selected="true"] { background: #b8400a; border-color: #b8400a; color: #fff; box-shadow: var(--shadow); }
+.tab[aria-selected="true"] { background: var(--btn-grad); border-color: #ff9d2f; color: var(--on-accent); box-shadow: var(--shadow); }
 .svc-list { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
 .js .svc-list .svc { display: none; }
 .js .svc-list .svc.active { display: block; }
@@ -851,7 +950,7 @@ h3 { font-weight: 800; }
 .svc p { font-size: 14px; color: var(--muted); }
 .ticks li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 600; margin-top: 8px; }
 .ticks .ic { color: var(--green); margin-top: 3px; }
-.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
+.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; position: relative; overflow: hidden; }
 .media .ic { width: 96px; height: 96px; stroke-width: 1.4; opacity: .95; }
 .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .media-cap { position: absolute; left: 14px; bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
@@ -866,11 +965,11 @@ h3 { font-weight: 800; }
 .deck-nav { display: none; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
 .js .deck-nav { display: flex; }
 .round { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; }
-.round:hover { background: #b8400a; color: #fff; border-color: #b8400a; }
+.round:hover { background: var(--btn-grad); color: var(--on-accent); border-color: #ff9d2f; }
 .deck-count { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--muted); }
 
 /* Venue cards */
-.venue .top { height: 150px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; }
+.venue .top { height: 150px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; position: relative; }
 .venue .top .ic { width: 56px; height: 56px; stroke-width: 1.5; }
 .venue .tag { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, .75); color: var(--orange); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
 .venue { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -952,6 +1051,9 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
+.brand-mark svg { width: 26px; height: 26px; }
+.brand { text-decoration: none; }
+
     </style>
     <script type="application/ld+json">${jsonLd}<\/script>
 </head>
@@ -983,6 +1085,7 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
         <symbol id="i-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/></symbol>
     </defs>
 </svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-logo" viewBox="0 0 40 40"><path d="M27 13.2C27 10.4 24 8.8 20.2 8.8c-4 0-6.7 2-6.7 5.3 0 3.6 3.2 4.6 6.6 5.5 3.7 1 6.8 2 6.8 5.8 0 3.3-2.9 5.4-6.9 5.4-3.6 0-6.5-1.6-6.8-4.6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/><circle cx="30.6" cy="9.6" r="2.3" fill="currentColor"/></symbol></svg>
 
 <a href="#main" class="skip">Skip to content</a>
 
@@ -994,8 +1097,8 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
 <header class="site-header">
     <div class="wrap">
         <div class="header-row">
-            <a href="#" class="brand" aria-label="${name} home">
-                <span class="brand-mark">${esc(String(state.brandName || 'S').charAt(0))}</span>
+            <a href="/" class="brand" aria-label="${name} home">
+                <span class="brand-mark"><svg viewBox="0 0 40 40" aria-hidden="true"><use href="#i-logo"/></svg></span>
                 <span>
                     <span class="brand-name">${name}</span>
                     <span class="brand-sub">${esc(state.brandTagline)}</span>
@@ -1307,9 +1410,11 @@ function updateGFormStatus() {
     if (!el) return;
     const g = parseGForm(state.gFormLink);
     if (!state.gFormLink || !state.gFormLink.trim()) {
-        el.textContent = 'Not connected yet. Until you connect a Google Form, the request form opens the visitor\'s email app addressed to you.';
+        el.textContent = 'Not connected yet. Until you connect a link, the request form opens the visitor\'s email app addressed to you.';
     } else if (!g.action) {
-        el.textContent = 'That does not look like a Google Forms pre-filled link. It should start with https://docs.google.com/forms/d/e/';
+        el.textContent = 'That is not a recognised link. It should start with https://script.google.com/macros/s/ (and end in /exec), or https://docs.google.com/forms/d/e/ for a Google Form.';
+    } else if (g.script) {
+        el.textContent = 'Connected to your Google Sheet script. Requests will be added as new rows.';
     } else if (g.missing.length) {
         el.textContent = 'Connected, but these answers were not found in the link: ' + g.missing.join(', ') + '. Those fields will not reach your form.';
     } else {
@@ -1408,6 +1513,14 @@ function onSidebarInput(e) {
     saveState();
 }
 
+function copyAppsScript() {
+    const ta = $('#apps-script-code');
+    if (!ta) return;
+    const done = () => toast('Script copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { ta.select(); document.execCommand('copy'); done(); });
+    else { ta.select(); document.execCommand('copy'); done(); }
+}
+
 function onAction(action, el) {
     const i = +el.dataset.i;
     switch (action) {
@@ -1417,6 +1530,7 @@ function onAction(action, el) {
         case 'reload': renderPreview(); toast('Preview reloaded'); break;
         case 'export': exportHTML(); break;
         case 'copy': copySource(); break;
+        case 'copy-script': copyAppsScript(); break;
         case 'reset': resetState(); break;
         case 'open-publish': openPublish(); break;
         case 'close-publish': closePublish(); break;

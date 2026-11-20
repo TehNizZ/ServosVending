@@ -11,7 +11,7 @@
     <meta name="theme-color" content="#0f1014">
     <meta property="og:site_name" content="SERVOS VENDING">
     <meta name="twitter:card" content="summary">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c2410c'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' text-anchor='middle' fill='white'%3ES%3C/text%3E%3C/svg%3E">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ffb52e'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='38' font-weight='900' text-anchor='middle' fill='%231f1300'%3ES%3C/text%3E%3C/svg%3E">
     <script>
         (function () {
             var d = document.documentElement;
@@ -23,12 +23,13 @@
 /* Servos Vending - static stylesheet. No frameworks, no external fonts. */
 
 :root {
-  --orange: #ffbe55;
-  --orange-dark: #ff773d;
-  --orange-text: #b3440a;
-  --grad: linear-gradient(135deg, #ffbe55 0%, #ff773d 100%);
-  --btn-grad: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
-  --grad-text: linear-gradient(135deg, #d4520c 0%, #b23a05 100%);
+  --orange: #ffd36b;
+  --orange-dark: #ffa23f;
+  --orange-text: #9a4d00;
+  --grad: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%);
+  --btn-grad: linear-gradient(135deg, #ffcb52 0%, #ff9d2f 100%);
+  --on-accent: #1f1300;
+  --grad-text: linear-gradient(135deg, #c75f00 0%, #9a4d00 100%);
   --day: #b45309;
   --night: #6d28d9;
 
@@ -52,16 +53,55 @@
   :root:not([data-theme="light"]) {
     --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
     --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
-    --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
-    --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
+    --orange-text: #ffd36b; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+    --grad-text: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%); --day: #fbbf24; --night: #a78bfa;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f1014; --bg-alt: #14151b; --card: #1a1b23; --border: #2a2b36;
   --text: #f1f5f9; --muted: #cbd5e1; --chip: #1e293b; --field: #0f172a;
-  --orange-text: #ffbe55; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
-  --grad-text: linear-gradient(135deg, #ffbe55 0%, #ff8a4c 100%); --day: #fbbf24; --night: #a78bfa;
+  --orange-text: #ffd36b; --shadow: 0 4px 14px rgba(0,0,0,.4); --shadow-lg: 0 20px 40px rgba(0,0,0,.5);
+  --grad-text: linear-gradient(135deg, #ffd36b 0%, #ffa23f 100%); --day: #fbbf24; --night: #a78bfa;
 }
+
+
+/* Soft colour wisps down the page. Sized in viewport units so they scale from phone to desktop. */
+body { position: relative; }
+body::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.170), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.119), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.119), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.153), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.085), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.119), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.153), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.119), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.136), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.119), transparent 70%);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body::before { background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.150), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.135), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.075), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.135), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.120), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.105), transparent 70%); } }
+:root[data-theme="dark"] body::before { background:
+    radial-gradient(58vmax 15vmax at 110% 2%, rgba(255,190,70,0.150), transparent 70%),
+    radial-gradient(52vmax 13vmax at -10% 11%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(50vmax 14vmax at 108% 21%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(60vmax 15vmax at -8% 31%, rgba(255,170,60,0.135), transparent 70%),
+    radial-gradient(52vmax 13vmax at 106% 42%, rgba(236,100,160,0.075), transparent 70%),
+    radial-gradient(56vmax 14vmax at -6% 52%, rgba(59,130,246,0.105), transparent 70%),
+    radial-gradient(58vmax 15vmax at 108% 62%, rgba(255,190,70,0.135), transparent 70%),
+    radial-gradient(50vmax 13vmax at -10% 73%, rgba(124,92,255,0.105), transparent 70%),
+    radial-gradient(56vmax 14vmax at 106% 83%, rgba(255,170,60,0.120), transparent 70%),
+    radial-gradient(54vmax 14vmax at -6% 94%, rgba(59,130,246,0.105), transparent 70%); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
@@ -88,7 +128,7 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .wrap-sm { max-width: 760px; margin: 0 auto; padding: 0 20px; }
 .center { text-align: center; }
 .section { padding: 64px 0; }
-.section.alt { background: var(--bg-alt); }
+.section.alt { background: color-mix(in srgb, var(--bg-alt) 72%, transparent); }
 .stack > * + * { margin-top: 14px; }
 .eyebrow { font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--orange-text); }
 .section-head { max-width: 640px; margin: 0 auto 40px; text-align: center; }
@@ -101,7 +141,7 @@ h3 { font-weight: 800; }
 
 /* Buttons */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 16px; font-weight: 800; padding: 12px 22px; transition: transform .15s; }
-.btn-primary { background: var(--btn-grad); color: #fff; box-shadow: var(--shadow); }
+.btn-primary { background: var(--btn-grad); color: var(--on-accent); box-shadow: var(--shadow); }
 .btn-primary:hover { transform: scale(1.04); }
 .btn-ghost { background: var(--card); border: 1px solid var(--border); }
 .btn-lg { padding: 16px 30px; font-size: 16px; }
@@ -116,7 +156,7 @@ h3 { font-weight: 800; }
 .site-header { position: sticky; top: 0; z-index: 40; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
 .header-row { display: flex; align-items: center; justify-content: space-between; height: 80px; }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; font-weight: 900; font-size: 20px; box-shadow: var(--shadow); }
+.brand-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; box-shadow: var(--shadow); }
 .brand-name { display: block; font-weight: 900; font-size: 18px; letter-spacing: .04em; line-height: 1; }
 .brand-sub { display: block; margin-top: 4px; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .nav { display: none; gap: 24px; font-size: 14px; font-weight: 600; }
@@ -128,7 +168,7 @@ h3 { font-weight: 800; }
 .mobile-menu { display: none; border-top: 1px solid var(--border); padding: 10px 20px 16px; font-weight: 600; font-size: 15px; }
 .mobile-menu.open { display: block; }
 .mobile-menu a { display: block; padding: 11px 0; }
-.mobile-menu .btn { color: #fff; margin-top: 8px; }
+.mobile-menu .btn-primary { color: var(--on-accent); margin-top: 8px; }
 @media (min-width: 640px) { .header-cta { display: inline-flex; } }
 @media (min-width: 1024px) { .nav { display: flex; } .menu-btn, .mobile-menu { display: none !important; } }
 
@@ -157,12 +197,12 @@ h3 { font-weight: 800; }
 .card h3 { font-size: 18px; }
 .card p { font-size: 14px; color: var(--muted); }
 .icon-tile { width: 48px; height: 48px; border-radius: 16px; background: rgba(255, 119, 61, .12); color: var(--orange-dark); display: grid; place-items: center; }
-.num { width: 32px; height: 32px; border-radius: 10px; background: var(--btn-grad); color: #fff; font-weight: 900; display: grid; place-items: center; font-size: 14px; }
+.num { width: 32px; height: 32px; border-radius: 10px; background: var(--btn-grad); color: var(--on-accent); font-weight: 900; display: grid; place-items: center; font-size: 14px; }
 
 /* Services */
 .tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 28px; }
 .tab { padding: 9px 18px; border-radius: 12px; font-weight: 700; font-size: 14px; background: var(--card); border: 1px solid var(--border); }
-.tab[aria-selected="true"] { background: #b8400a; border-color: #b8400a; color: #fff; box-shadow: var(--shadow); }
+.tab[aria-selected="true"] { background: var(--btn-grad); border-color: #ff9d2f; color: var(--on-accent); box-shadow: var(--shadow); }
 .svc-list { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
 .js .svc-list .svc { display: none; }
 .js .svc-list .svc.active { display: block; }
@@ -178,7 +218,7 @@ h3 { font-weight: 800; }
 .svc p { font-size: 14px; color: var(--muted); }
 .ticks li { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; font-weight: 600; margin-top: 8px; }
 .ticks .ic { color: var(--green); margin-top: 3px; }
-.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; overflow: hidden; }
+.media { aspect-ratio: 4 / 3; border-radius: 18px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; position: relative; overflow: hidden; }
 .media .ic { width: 96px; height: 96px; stroke-width: 1.4; opacity: .95; }
 .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .media-cap { position: absolute; left: 14px; bottom: 12px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; display: flex; gap: 6px; align-items: center; text-shadow: 0 1px 4px rgba(0,0,0,.35); }
@@ -193,11 +233,11 @@ h3 { font-weight: 800; }
 .deck-nav { display: none; justify-content: center; align-items: center; gap: 16px; margin-top: 24px; }
 .js .deck-nav { display: flex; }
 .round { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; }
-.round:hover { background: #b8400a; color: #fff; border-color: #b8400a; }
+.round:hover { background: var(--btn-grad); color: var(--on-accent); border-color: #ff9d2f; }
 .deck-count { font-family: ui-monospace, Menlo, Consolas, monospace; font-weight: 700; font-size: 14px; color: var(--muted); }
 
 /* Venue cards */
-.venue .top { height: 150px; background: var(--btn-grad); color: #fff; display: grid; place-items: center; position: relative; }
+.venue .top { height: 150px; background: var(--btn-grad); color: var(--on-accent); display: grid; place-items: center; position: relative; }
 .venue .top .ic { width: 56px; height: 56px; stroke-width: 1.5; }
 .venue .tag { position: absolute; top: 12px; left: 12px; background: rgba(15, 23, 42, .75); color: var(--orange); font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
 .venue { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
@@ -279,8 +319,11 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
 
+.brand-mark svg { width: 26px; height: 26px; }
+.brand { text-decoration: none; }
+
     </style>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"SERVOS VENDING","areaServed":"Palm Beach County, Florida","telephone":"(561) 555-0199","email":"rileyc@servosvending.com"}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"LocalBusiness","name":"SERVOS VENDING","areaServed":"Palm Beach County, Florida","telephone":"561-329-3449","email":"rileyc@servosvending.com"}</script>
 </head>
 <body>
 
@@ -310,6 +353,7 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
         <symbol id="i-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="5"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/></symbol>
     </defs>
 </svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><symbol id="i-logo" viewBox="0 0 40 40"><path d="M27 13.2C27 10.4 24 8.8 20.2 8.8c-4 0-6.7 2-6.7 5.3 0 3.6 3.2 4.6 6.6 5.5 3.7 1 6.8 2 6.8 5.8 0 3.3-2.9 5.4-6.9 5.4-3.6 0-6.5-1.6-6.8-4.6" fill="none" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/><circle cx="30.6" cy="9.6" r="2.3" fill="currentColor"/></symbol></svg>
 
 <a href="#main" class="skip">Skip to content</a>
 
@@ -321,8 +365,8 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
 <header class="site-header">
     <div class="wrap">
         <div class="header-row">
-            <a href="#" class="brand" aria-label="SERVOS VENDING home">
-                <span class="brand-mark">S</span>
+            <a href="/" class="brand" aria-label="SERVOS VENDING home">
+                <span class="brand-mark"><svg viewBox="0 0 40 40" aria-hidden="true"><use href="#i-logo"/></svg></span>
                 <span>
                     <span class="brand-name">SERVOS VENDING</span>
                     <span class="brand-sub">Palm Beach County vending &amp; amenities</span>
@@ -352,7 +396,7 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
         <p class="lead">Servos Vending places smart coolers, phone charging stations and trading card kiosks in Palm Beach County businesses and buildings. We supply, install, stock and maintain every machine, so it costs you nothing and takes nothing off your plate.</p>
         <div class="btn-row">
             <a href="#builder" class="btn btn-primary btn-lg">Start your 30-day trial</a>
-            <a href="tel:5615550199" class="btn btn-ghost btn-lg"><svg class="ic " aria-hidden="true"><use href="#i-phone"/></svg><span>Call (561) 555-0199</span></a>
+            <a href="tel:5613293449" class="btn btn-ghost btn-lg"><svg class="ic " aria-hidden="true"><use href="#i-phone"/></svg><span>Call 561-329-3449</span></a>
         </div>
     </section>
 
@@ -656,11 +700,11 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
 
 <footer class="site-footer">
     <p>&copy; 2026 SERVOS VENDING. All rights reserved.</p>
-    <p><a href="tel:5615550199">(561) 555-0199</a> | <a href="mailto:rileyc@servosvending.com">rileyc@servosvending.com</a></p>
+    <p><a href="tel:5613293449">561-329-3449</a> | <a href="mailto:rileyc@servosvending.com">rileyc@servosvending.com</a></p>
 </footer>
 
 <div class="callbar">
-    <a href="tel:5615550199" class="btn btn-ghost"><svg class="ic " aria-hidden="true"><use href="#i-phone"/></svg><span>Call us</span></a>
+    <a href="tel:5613293449" class="btn btn-ghost"><svg class="ic " aria-hidden="true"><use href="#i-phone"/></svg><span>Call us</span></a>
     <a href="#builder" class="btn btn-primary">Start free trial</a>
 </div>
 
