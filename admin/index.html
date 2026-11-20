@@ -1267,8 +1267,27 @@ input, select, textarea { width: 100%; background: var(--field); border: 1px sol
         }
 
 
+/* Preview-only helper. The preview runs from srcdoc, so a link like "#builder" would
+   resolve against the Studio's own address and load a second Studio inside the preview.
+   This keeps in-page links scrolling inside the preview, opens real web links in a new tab,
+   and stops the request form from sending a real submission while you are editing. */
+const PREVIEW_SHIM = '<script>(function(){' +
+    'document.addEventListener("click",function(e){' +
+    'var a=e.target.closest&&e.target.closest("a[href]");if(!a)return;' +
+    'var h=a.getAttribute("href")||"";e.preventDefault();' +
+    'if(h.charAt(0)==="#"){var t=h.length>1?document.getElementById(h.slice(1)):null;' +
+    'if(t)t.scrollIntoView({behavior:"smooth"});else if(h==="#")window.scrollTo({top:0,behavior:"smooth"});return;}' +
+    'if(/^https?:/i.test(h))window.open(h,"_blank","noopener");' +
+    '},true);' +
+    'document.addEventListener("submit",function(e){e.preventDefault();e.stopImmediatePropagation();' +
+    'var b=document.createElement("div");b.textContent="Preview only: the form is not sent while editing.";' +
+    'b.style.cssText="position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 16px;border-radius:10px;font:14px system-ui;z-index:99999";' +
+    'document.body.appendChild(b);setTimeout(function(){b.remove()},2500);},true);' +
+    '})();<\/script>';
+
 function renderPreview() {
     const html = generateStandaloneHTML();
+    const previewHtml = html.replace('</body>', PREVIEW_SHIM + '</body>');
     const frame = $('#live-iframe');
     let y = 0;
     try { y = frame.contentWindow.scrollY || 0; } catch (e) {}
@@ -1276,7 +1295,7 @@ function renderPreview() {
         try { frame.contentWindow.scrollTo({ top: y, behavior: 'instant' }); } catch (e) {}
         frame.onload = null;
     };
-    frame.srcdoc = html;
+    frame.srcdoc = previewHtml;
     $('#source-code-area').value = html;
 }
 
